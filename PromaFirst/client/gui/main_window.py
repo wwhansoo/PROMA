@@ -106,36 +106,53 @@ class PromaEnterpriseApp(ctk.CTk):
         self.grid_columnconfigure(0, weight=1) # Cột Bản vẽ
         self.grid_columnconfigure(1, weight=0) # Cột Menu phải
 
-        # 🚀 TOP RIBBON SIÊU XỊN
-        self.ribbon = ctk.CTkFrame(self, height=50, corner_radius=0, fg_color=BG_DARK)
-        self.ribbon.grid(row=0, column=0, columnspan=2, sticky="ew")
+        # ==========================================
+        # 🚀 TOP TOOLBAR - MACBOOK TOUCH BAR STYLE
+        # ==========================================
+        self.top_toolbar = ctk.CTkFrame(self, height=50, corner_radius=0, fg_color=BG_DARK)
+        self.top_toolbar.grid(row=0, column=0, columnspan=2, sticky="ew")
+        self.top_toolbar.pack_propagate(False) 
+
+        # --- [TRÁI] LOGO & NÚT CƠ BẢN ---
+        self.toolbar_left = ctk.CTkFrame(self.top_toolbar, fg_color="transparent")
+        self.toolbar_left.pack(side="left", fill="y", padx=(20, 10))
+
+        ctk.CTkLabel(self.toolbar_left, text="P.", font=("Arial", 28, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(0, 15))
+
+        ctk.CTkButton(self.toolbar_left, text="📂 OPEN", width=70, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Arial", 12, "bold"), command=self.open_additional_pdf).pack(side="left", padx=5)
+        ctk.CTkButton(self.toolbar_left, text="💾 EXPORT", width=70, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Arial", 12, "bold"), command=self.export_markup_pdf).pack(side="left", padx=5)
         
-        # Logo P. 
-        ctk.CTkLabel(self.ribbon, text="P.", font=("Arial", 28, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(20, 15))
+        # Nút INSERT (Gắn bùa bật tắt Touch Bar)
+        self.btn_insert = ctk.CTkButton(self.toolbar_left, text="✚ INSERT", width=80, height=32, corner_radius=6, fg_color=ACCENT_MAIN, text_color=BG_DARK, hover_color=ACCENT_HOVER, font=("Arial", 12, "bold"), command=self.toggle_touchbar_insert)
+        self.btn_insert.pack(side="left", padx=5)
 
-        # Nút OPEN (Trực quan, có chữ đàng hoàng)
-        ctk.CTkButton(
-            self.ribbon, text="📂 OPEN", width=80, height=34, corner_radius=6,
-            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Arial", 12, "bold"),
-            command=self.open_additional_pdf
-        ).pack(side="left", padx=(5, 5), pady=8)
+        # --- [GIỮA] TOUCH BAR DYNAMIC SCREEN ---
+        self.touch_bar = ctk.CTkFrame(self.top_toolbar, height=36, corner_radius=8, fg_color=PANEL_BG, border_width=1, border_color="#2C2C2E")
+        self.touch_bar.pack(side="left", fill="both", expand=True, padx=10, pady=7)
+        self.touch_bar.pack_propagate(False)
 
-        # Nút EXPORT
-        ctk.CTkButton(
-            self.ribbon, text="💾 EXPORT", width=80, height=34, corner_radius=6,
-            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Arial", 12, "bold"),
-            command=self.export_markup_pdf
-        ).pack(side="left", padx=5, pady=8)
+        # --- [PHẢI] XOAY TRANG & CHUYỂN TRANG ---
+        self.toolbar_right = ctk.CTkFrame(self.top_toolbar, fg_color="transparent")
+        self.toolbar_right.pack(side="right", fill="y", padx=(10, 20))
 
-        # Nút INSERT ngông nghênh
-        self.btn_insert = ctk.CTkButton(
-            self.ribbon, text="✚ INSERT", width=100, height=34, corner_radius=6,
-            fg_color=ACCENT_MAIN, text_color=BG_DARK, hover_color=ACCENT_HOVER, font=("Arial", 12, "bold")
-        )
-        self.btn_insert.pack(side="left", padx=15, pady=8)
+        # Nút Xoay Trang ngạo nghễ
+        ctk.CTkButton(self.toolbar_right, text="⟳ XOAY", width=60, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#3A3A3C", font=("Arial", 12, "bold"), command=self.rotate_page).pack(side="left", padx=(0, 15))
 
-        # Viền mờ ngăn cách
+        # Cụm chuyển trang siêu tinh gọn
+        self.nav_frame = ctk.CTkFrame(self.toolbar_right, fg_color="transparent")
+        self.nav_frame.pack(side="left", pady=9)
+        ctk.CTkButton(self.nav_frame, text="❮", width=28, height=28, corner_radius=6, fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", font=("Arial", 14, "bold"), command=self.prev_page).pack(side="left", padx=2)
+        
+        self.lbl_page = ctk.CTkLabel(self.nav_frame, text="00 / 00", font=("Consolas", 13, "bold"), text_color=TEXT_MAIN)
+        self.lbl_page.pack(side="left", padx=8)
+        
+        ctk.CTkButton(self.nav_frame, text="❯", width=28, height=28, corner_radius=6, fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", font=("Arial", 14, "bold"), command=self.next_page).pack(side="left", padx=2)
+
+        # Kẻ vạch mờ ranh giới
         ctk.CTkFrame(self, height=1, corner_radius=0, fg_color=PANEL_BG).grid(row=0, column=0, columnspan=2, sticky="sew")
+
+        # --- CENTER AREA (Không gian bản vẽ đã rộng tối đa) ---
+        self.center_frame = ctk.CTkFrame(self, fg_color="transparent")
 
         # --- CENTER AREA (Không gian bản vẽ đã rộng tối đa) ---
         self.center_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -150,38 +167,6 @@ class PromaEnterpriseApp(ctk.CTk):
         # Khung Canvas
         self.canvas_area = ctk.CTkFrame(self.center_frame, corner_radius=12, fg_color=BG_DARK)
         self.canvas_area.pack(side="top", fill="both", expand=True)
-
-        # 🚀 FLOATING NAVIGATION (Apple Aesthetic + Xuyên thấu thật)
-        self.floating_nav = ctk.CTkFrame(
-            self.canvas_area, 
-            height=36, 
-            corner_radius=18, 
-            fg_color="#1C1C1E",    
-            bg_color="transparent", # 🚀 TRẢ LẠI BÙA TRONG SUỐT CỦA SẾP!
-            border_width=1, 
-            border_color="#2C2C2E" 
-        )
-        self.floating_nav.place(relx=0.98, rely=0.03, anchor="ne")
-        
-        ctk.CTkButton(
-            self.floating_nav, text="❮", width=28, height=28, corner_radius=14, 
-            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", 
-            font=("Arial", 14, "bold"), command=self.prev_page
-        ).pack(side="left", padx=(4, 2), pady=4)
-        
-        self.lbl_page = ctk.CTkLabel(
-            self.floating_nav, text="00 / 00", 
-            font=("Consolas", 13, "bold"), text_color=TEXT_MAIN
-        )
-        self.lbl_page.pack(side="left", padx=12, pady=4)
-        
-        ctk.CTkButton(
-            self.floating_nav, text="❯", width=28, height=28, corner_radius=14, 
-            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", 
-            font=("Arial", 14, "bold"), command=self.next_page
-        ).pack(side="left", padx=(2, 4), pady=4)
-
-        self.floating_nav.place_forget()
 
         # --- RIGHT PANEL ---
         self.right_panel = ctk.CTkFrame(self, width=320, corner_radius=0, fg_color=PANEL_BG)
@@ -459,8 +444,7 @@ class PromaEnterpriseApp(ctk.CTk):
                 tab_data["lbl_name"].configure(text_color=TEXT_MAIN)
                 tab_data["canvas_container"].pack(fill="both", expand=True)
                 
-                self.floating_nav.place(relx=0.98, rely=0.03, anchor="ne")
-                self.floating_nav.lift()
+                # Cập nhật Text
                 self.lbl_page.configure(text=f"{tab_data['current_page'] + 1:02d} / {tab_data['pdf_doc'].page_count:02d}")
                 self.lbl_zoom.configure(text=f"Zoom: {int(tab_data['zoom_level'] * 100)}%")
                 
@@ -471,6 +455,8 @@ class PromaEnterpriseApp(ctk.CTk):
 
                 self.render_page(name)
             else:
+                # 🚀 LỆNH THẦN THÁNH BỊ XÓA NHẦM NAY ĐÃ TRỞ LẠI!
+                # Ẩn sạch các tab không dùng tới để không bị đè hình, kẹt trang!
                 tab_data["tab_ui"].configure(fg_color=TAB_INACTIVE)
                 tab_data["lbl_name"].configure(text_color=TEXT_MUTED)
                 tab_data["canvas_container"].pack_forget()
@@ -491,11 +477,8 @@ class PromaEnterpriseApp(ctk.CTk):
             self.active_tab_name = None
             self.lbl_page.configure(text="00 / 00")
             self.lbl_zoom.configure(text="Zoom: 200%")
-            self.floating_nav.place_forget()
+            
             for child in self.layer_frame.winfo_children(): child.destroy()
-        elif self.active_tab_name == tab_name:
-            last_tab = list(self.tabs.keys())[-1]
-            self.switch_to_tab(last_tab)
 
     def render_page(self, tab_name, redraw_pdf=True):
         data = self.tabs.get(tab_name)
@@ -746,6 +729,57 @@ class PromaEnterpriseApp(ctk.CTk):
                 self.log_to_terminal("Không tìm thấy vật thể nào trong vùng này!", "sys")
         else:
             self.log_to_terminal(f"LỖI HỆ THỐNG: {ket_qua}", "error")
+    # 🚀 KIẾN TRÚC MỚI: MỞ RỘNG TOUCH BAR KHI BẤM INSERT
+    def toggle_touchbar_insert(self):
+        # 1. Quét sạch các nút cũ trên Touch Bar
+        for widget in self.touch_bar.winfo_children():
+            widget.destroy()
+            
+        # 2. In cái chữ mờ mờ vào chờ sếp ra lệnh dàn quân
+        ctk.CTkLabel(
+            self.touch_bar, 
+            text="[ TÍNH NĂNG INSERT - ĐANG CHỜ SẾP ĐỔ CODE VÀO ]", 
+            font=("Consolas", 12, "bold"), text_color=TEXT_MUTED
+        ).pack(expand=True)
+        
+        self.log_to_terminal("Đã mở nắp Touch Bar Insert. Chờ súng đạn!", "sys")
+
+    # 🚀 KIẾN TRÚC MỚI: XOAY TRANG BẢN VẼ
+    # 🚀 KIẾN TRÚC MỚI: XOAY TRANG BẢN VẼ (VÀ XOAY CẢ KÝ HIỆU)
+    def rotate_page(self):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        doc = data["pdf_doc"]
+        page_idx = data["current_page"]
+        page = doc.load_page(page_idx)
+        
+        # Lấy kích thước TRƯỚC KHI xoay
+        old_h = page.rect.height
+        
+        # Xoay tờ giấy PDF 90 độ theo chiều kim đồng hồ
+        page.set_rotation((page.rotation + 90) % 360)
+        
+        # Quét dọn vùng chọn nháp (tránh lỗi tọa độ khi bản vẽ lật ngang)
+        data["vung_chon_pdf"] = None
+        if data.get("rect_id"): data["canvas"].delete(data["rect_id"])
+        
+        # 🚀 TOÁN HỌC MA THUẬT: Xoay tọa độ của TẤT CẢ markers đã đếm
+        if page_idx in data.get("markers", {}):
+            for ma_den, thong_tin in data["markers"][page_idx].items():
+                toa_do_moi = []
+                for box in thong_tin["toa_do"]:
+                    x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
+                    # Thuật toán tịnh tiến tọa độ 90 độ CW:
+                    nx0 = old_h - y1
+                    ny0 = x0
+                    nx1 = old_h - y0
+                    ny1 = x1
+                    toa_do_moi.append([nx0, ny0, nx1, ny1])
+                thong_tin["toa_do"] = toa_do_moi
+        
+        # Bắt nó load lại bản vẽ mới
+        self.render_page(self.active_tab_name, redraw_pdf=True)
+        self.log_to_terminal("Đã xoay trang 90° và nắn lại tọa độ ký hiệu!", "action")
 
     # ==========================================
     # KHU VỰC 6: XUẤT BẢN VẼ CÓ THREADING CHỐNG TREO APP
@@ -766,26 +800,33 @@ class PromaEnterpriseApp(ctk.CTk):
             self.log_to_terminal("Hủy bỏ xuất file.", "sys")
             return
             
-        self.log_to_terminal("Đang khởi tạo bản sao và nạp Markup màu... VUI LÒNG ĐỢI, ĐỪNG BẤM LUNG TUNG!", "action")
+        self.log_to_terminal("Đang khởi tạo bản sao và nạp Markup màu... VUI LÒNG ĐỢI!", "action")
         
-        # 🚀 Ép kiểu copy dữ liệu ra trước để ném vào luồng ngầm (Tránh đụng độ bộ nhớ với UI)
         markers_data = data_tab.get("markers", {}) 
         bang_mau = data_tab.get("bang_mau_vat_the", {})
         visibility = data_tab.get("layer_visibility", {})
         scales = data_tab.get("layer_scale", {})
         
-        # Kích hoạt luồng chạy ngầm để UI vẫn mượt mà lướt web được
+        # 🚀 BẮT LẠI GÓC XOAY CỦA TẤT CẢ CÁC TRANG ĐỂ GỬI XUỐNG XƯỞNG IN
+        goc_xoay = {i: data_tab["pdf_doc"].load_page(i).rotation for i in range(data_tab["pdf_doc"].page_count)}
+        
         threading.Thread(
             target=self._thread_export_pdf, 
-            args=(duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales), 
+            args=(duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay), 
             daemon=True
         ).start()
 
-    def _thread_export_pdf(self, duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales):
+    def _thread_export_pdf(self, duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay):
         try:
             import fitz
             pdf_copy = fitz.open(duong_dan_goc)
             tong_o_ve = 0
+            
+            # 🚀 ĐỒNG BỘ GÓC XOAY CHO BẢN SAO TRƯỚC KHI ĐÓNG DẤU
+            for i in range(pdf_copy.page_count):
+                p = pdf_copy.load_page(i)
+                if p.rotation != goc_xoay.get(i, 0):
+                    p.set_rotation(goc_xoay.get(i, 0))
             
             for trang_idx, layers in markers_data.items():
                 page = pdf_copy.load_page(trang_idx)
@@ -797,42 +838,31 @@ class PromaEnterpriseApp(ctk.CTk):
                     rgb = tuple(int(mau_hex.lstrip('#')[i:i+2], 16) / 255.0 for i in (0, 2, 4))
                     scale = scales.get(ma_den, 1.0)
                     
-                    # 🚀 VŨ KHÍ TỐI THƯỢNG: TẠO KHUNG VẼ NHÁP HÀNG LOẠT (SHAPE)
                     shape = page.new_shape() 
                     so_luong_ma_nay = 0
                     
                     for box in thong_tin["toa_do"]:
                         bx0, by0, bx1, by1 = box[0], box[1], box[2], box[3]
-                        
-                        # 🚀 TÂM ĐIỂM TUYỆT ĐỐI (LÚC XUẤT FILE)
                         cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
-                        
-                        # Kích thước chuẩn 15 points (nhân với scale từ thanh trượt)
                         canh_vuong = 15.0 * scale
                         
-                        # Nặn ra hình vuông mới từ tâm
                         bx0_moi = cx - canh_vuong / 2
                         by0_moi = cy - canh_vuong / 2
                         bx1_moi = cx + canh_vuong / 2
                         by1_moi = cy + canh_vuong / 2
                             
                         rect = fitz.Rect(bx0_moi, by0_moi, bx1_moi, by1_moi)
-                        
-                        # CHỈ VẼ NHÁP VÀO BỘ NHỚ, CHƯA IN RA PDF
                         shape.draw_rect(rect) 
                         so_luong_ma_nay += 1
                         tong_o_ve += 1
                     
                     if so_luong_ma_nay > 0:
-                        # 🚀 ĐÓNG DẤU 1 LẦN DUY NHẤT CHO CẢ NGÀN CÁI ĐÈN!
                         shape.finish(color=rgb, width=2)
                         shape.commit()
                         
-            # 🚀 LƯU FILE VỚI BÙA ÉP XÁC: garbage=4 (Dọn sạch rác đồ họa thừa của CAD)
             pdf_copy.save(file_luu, deflate=True, garbage=4)
             pdf_copy.close()
             
-            # Gửi tín hiệu hoàn thành về cho UI an toàn
             self.after(0, self._hoan_thanh_export, True, file_luu, tong_o_ve, "")
         except Exception as e:
             self.after(0, self._hoan_thanh_export, False, "", 0, str(e))
