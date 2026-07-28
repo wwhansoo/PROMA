@@ -151,14 +151,35 @@ class PromaEnterpriseApp(ctk.CTk):
         self.canvas_area = ctk.CTkFrame(self.center_frame, corner_radius=12, fg_color=BG_DARK)
         self.canvas_area.pack(side="top", fill="both", expand=True)
 
-        # FLOATING NAVIGATION (Chuyển trang lơ lửng)
-        self.floating_nav = ctk.CTkFrame(self.canvas_area, height=40, corner_radius=20, fg_color=PANEL_BG, bg_color=BG_DARK)
+        # 🚀 FLOATING NAVIGATION (Apple Aesthetic + Xuyên thấu thật)
+        self.floating_nav = ctk.CTkFrame(
+            self.canvas_area, 
+            height=36, 
+            corner_radius=18, 
+            fg_color="#1C1C1E",    
+            bg_color="transparent", # 🚀 TRẢ LẠI BÙA TRONG SUỐT CỦA SẾP!
+            border_width=1, 
+            border_color="#2C2C2E" 
+        )
         self.floating_nav.place(relx=0.98, rely=0.03, anchor="ne")
         
-        ctk.CTkButton(self.floating_nav, text="◀", width=30, height=30, corner_radius=15, fg_color="transparent", text_color=ACCENT_MAIN, hover_color=BG_DARK, command=self.prev_page).pack(side="left", padx=(5, 0), pady=5)
-        self.lbl_page = ctk.CTkLabel(self.floating_nav, text="00 / 00", font=("Consolas", 14, "bold"), text_color=TEXT_MAIN)
-        self.lbl_page.pack(side="left", padx=15, pady=5)
-        ctk.CTkButton(self.floating_nav, text="▶", width=30, height=30, corner_radius=15, fg_color="transparent", text_color=ACCENT_MAIN, hover_color=BG_DARK, command=self.next_page).pack(side="left", padx=(0, 5), pady=5)
+        ctk.CTkButton(
+            self.floating_nav, text="❮", width=28, height=28, corner_radius=14, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", 
+            font=("Arial", 14, "bold"), command=self.prev_page
+        ).pack(side="left", padx=(4, 2), pady=4)
+        
+        self.lbl_page = ctk.CTkLabel(
+            self.floating_nav, text="00 / 00", 
+            font=("Consolas", 13, "bold"), text_color=TEXT_MAIN
+        )
+        self.lbl_page.pack(side="left", padx=12, pady=4)
+        
+        ctk.CTkButton(
+            self.floating_nav, text="❯", width=28, height=28, corner_radius=14, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", 
+            font=("Arial", 14, "bold"), command=self.next_page
+        ).pack(side="left", padx=(2, 4), pady=4)
 
         self.floating_nav.place_forget()
 
