@@ -240,7 +240,11 @@ class PromaEnterpriseApp(ctk.CTk):
         row = ctk.CTkFrame(self.layer_frame, fg_color="transparent")
         row.pack(fill="x", pady=2)
         
-        color_box = ctk.CTkFrame(row, width=15, height=15, corner_radius=3, fg_color=mau_sac, cursor="hand2")
+        # 🚀 CHỮA BỆNH ĐỔI MÀU: Dùng CTkButton thay vì CTkFrame để click đéo bao giờ trượt!
+        color_box = ctk.CTkButton(
+            row, text="", width=18, height=18, corner_radius=3, 
+            fg_color=mau_sac, hover_color=mau_sac, cursor="hand2"
+        )
         color_box.pack(side="left", padx=(5, 5))
         
         switch_var = ctk.BooleanVar(value=data["layer_visibility"].get(ma_den, True))
@@ -254,7 +258,7 @@ class PromaEnterpriseApp(ctk.CTk):
 
         data["layer_switches"][ma_den] = switch
 
-        # 🚀 GẮN NÚT XÓA BÊN PHẢI NGOÀI CÙNG
+        # Nút xóa ✖
         btn_delete = ctk.CTkButton(
             row, text="✖", width=24, height=24, corner_radius=6, 
             fg_color="transparent", text_color=TEXT_MUTED, hover_color="#B3543E", font=("Arial", 14),
@@ -262,7 +266,7 @@ class PromaEnterpriseApp(ctk.CTk):
         )
         btn_delete.pack(side="right", padx=(5, 5))
 
-        # 🚀 RÁP THANH TRƯỢT SCALE KẾ BÊN NÚT XÓA
+        # Thanh trượt Scale
         scale_val = data.setdefault("layer_scale", {}).setdefault(ma_den, 1.0)
         slider = ctk.CTkSlider(
             row, width=70, height=12, from_=1.0, to=5.0, 
@@ -272,7 +276,13 @@ class PromaEnterpriseApp(ctk.CTk):
         slider.set(scale_val)
         slider.pack(side="right", padx=(5, 0))
 
-        color_box.bind("<Button-1>", lambda e, m=ma_den, cb=color_box, sw=switch, sl=slider: self.change_layer_color(m, cb, sw, sl))
+        # 🚀 GẮN LỆNH ĐỔI MÀU TRỰC TIẾP VÀO NÚT (ĐÉO DÙNG BIND NỮA)
+        color_box.configure(command=lambda m=ma_den, cb=color_box, sw=switch, sl=slider: self.change_layer_color(m, cb, sw, sl))
+
+        # 🚀 GẮN BÙA DOUBLE-CLICK VÀO CHỮ TRÊN CÔNG TẮC ĐỂ RENAME LAYER
+        # Thằng CustomTkinter giấu Widget chữ ở biến _text_label bên trong
+        switch._text_label.bind("<Double-Button-1>", lambda e, m=ma_den: self.rename_layer_action(m))
+        switch._text_label.configure(cursor="xterm") # Đổi con trỏ chuột thành hình chữ I cho người ta biết là sửa được
 
     # Nâng cấp hàm đổi màu để đổi luôn màu của thanh trượt
     def change_layer_color(self, ma_den, color_box, switch, slider=None):
@@ -352,6 +362,55 @@ class PromaEnterpriseApp(ctk.CTk):
         # 3. Quét lại bản vẽ (Mất tích luôn trên màn hình)
         self.render_page(self.active_tab_name, redraw_pdf=False)
         self.log_to_terminal(f"Đã phi tang toàn bộ mã '{ma_den}' khỏi bản vẽ!", "error")
+    
+    # ==========================================
+    # 🚀 HÀM MỚI: DOUBLE CLICK ĐỂ RENAME LAYER
+    # ==========================================
+    def rename_layer_action(self, ma_cu):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        
+        # 1. Bật cửa sổ hỏi Tên mới
+        dialog = ctk.CTkInputDialog(text=f"Đổi tên cho Layer [{ma_cu}]:", title="Rename Layer")
+        ma_moi = dialog.get_input()
+        
+        if not ma_moi or ma_moi.strip() == "" or ma_moi.upper().strip() == ma_cu:
+            return # Hủy nếu bấm Cancel hoặc để trống hoặc gõ lại tên cũ
+            
+        ma_moi = ma_moi.upper().strip()
+        
+        # 2. Chặn lỗi trùng tên
+        if ma_moi in data["bang_mau_vat_the"]:
+            self.log_to_terminal(f"LỖI: Tên '{ma_moi}' đã tồn tại trên bản vẽ rồi sếp ơi!", "error")
+            return
+
+        # 3. CHUYỂN GIAO TÀI SẢN TRONG NÃO AI (Màu, Trạng thái, Scale)
+        data["bang_mau_vat_the"][ma_moi] = data["bang_mau_vat_the"].pop(ma_cu)
+        data["layer_visibility"][ma_moi] = data["layer_visibility"].pop(ma_cu)
+        if ma_cu in data["layer_scale"]:
+            data["layer_scale"][ma_moi] = data["layer_scale"].pop(ma_cu)
+
+        # 4. CHUYỂN GIAO TỌA ĐỘ TRÊN TẤT CẢ CÁC TRANG PDF
+        for trang_idx, markers_trang in data.get("markers", {}).items():
+            if ma_cu in markers_trang:
+                markers_trang[ma_moi] = markers_trang.pop(ma_cu)
+
+        # 5. Xây lại danh sách UI cho chuẩn tên mới
+        self.log_to_terminal(f"Đã rename Layer: [{ma_cu}] -> [{ma_moi}]", "success")
+        
+        # Refresh lại toàn bộ Layer Manager và Canvas
+        for child in self.layer_frame.winfo_children(): child.destroy()
+        data["layer_switches"] = {}
+        
+        trang_hien_tai = data["current_page"]
+        markers_trang_nay = data.get("markers", {}).get(trang_hien_tai, {})
+        
+        for ma_den in sorted(data["bang_mau_vat_the"].keys()):
+            mau_sac = data["bang_mau_vat_the"][ma_den]
+            so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
+            self.add_layer_toggle_ui(ma_den, mau_sac, so_l)
+            
+        self.render_page(self.active_tab_name, redraw_pdf=False)
 
     def update_layer_manager_counts(self):
         if not self.active_tab_name: return
@@ -400,6 +459,10 @@ class PromaEnterpriseApp(ctk.CTk):
         canvas.bind("<ButtonPress-1>", self.on_drag_start)
         canvas.bind("<B1-Motion>", self.on_drag_motion)
         canvas.bind("<ButtonRelease-1>", self.on_drag_release)
+        canvas.bind("<ButtonPress-2>", self.on_middle_drag_start)
+        canvas.bind("<B2-Motion>", self.on_middle_drag_motion)
+        canvas.bind("<ButtonRelease-2>", self.on_middle_drag_release)
+        canvas.bind("<Button-3>", self.on_right_click)
         canvas.bind("<MouseWheel>", self.on_zoom)
         canvas.bind("<Motion>", self.track_mouse)
 
@@ -552,16 +615,62 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # 🚀 Nếu đang ở chế độ Kéo chọn vùng
+        # 🚀 ƯU TIÊN 1: CHẾ ĐỘ TẨY (ERASE MODE - CLICK TRÁI XÓA BẤT KỲ ĐIỂM NÀO)
+        if getattr(self, "current_action", None) == "ERASE":
+            pos_x, pos_y = data["img_pos"]
+            zoom = data["zoom_level"]
+            px = (event.x - pos_x) / zoom
+            py = (event.y - pos_y) / zoom
+            
+            trang = data["current_page"]
+            markers_trang_nay = data.get("markers", {}).get(trang, {})
+            
+            for ma_den, thong_tin in markers_trang_nay.items():
+                if not data["layer_visibility"].get(ma_den, True): continue
+                
+                # Quét xem cú click có trúng ô vuông nào không (sai số +-8 points cho dễ bấm trúng)
+                for i, box in enumerate(thong_tin["toa_do"]):
+                    if (box[0] - 8) <= px <= (box[2] + 8) and (box[1] - 8) <= py <= (box[3] + 8):
+                        thong_tin["toa_do"].pop(i)
+                        thong_tin["so_luong"] -= 1
+                        
+                        self.log_to_terminal(f"🗑️ Đã dùng Tẩy xóa 1 điểm của mã [{ma_den}]!", "error")
+                        self.update_layer_manager_counts()
+                        self.render_page(self.active_tab_name, redraw_pdf=False)
+                        return # Xóa xong 1 điểm thì dừng, không quét tiếp
+            return # Đang cầm tẩy thì cấm kéo bản vẽ
+
+        # 🚀 ƯU TIÊN 2: TÍNH NĂNG MARK (CẦM SÚNG CHẤM ĐIỂM)
+        if getattr(self, "current_action", None) == "MARK":
+            pos_x, pos_y = data["img_pos"]
+            zoom = data["zoom_level"]
+            px = (event.x - pos_x) / zoom
+            py = (event.y - pos_y) / zoom
+
+            box = [px - 10, py - 10, px + 10, py + 10]
+            ma_den = self.current_mark_layer
+            trang = data["current_page"]
+
+            data["markers"][trang][ma_den]["toa_do"].append(box)
+            data["markers"][trang][ma_den]["so_luong"] += 1
+
+            self.update_layer_manager_counts()
+            self.render_page(self.active_tab_name, redraw_pdf=False)
+            return 
+
+        # 🚀 ƯU TIÊN 3: CHẾ ĐỘ KÉO CHỌN VÙNG
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
             data["canvas"].config(cursor="crosshair")
             data["drag_data"]["start_x"] = event.x
             data["drag_data"]["start_y"] = event.y
-            # Xóa khung cũ nếu có
             if data.get("rect_id"): data["canvas"].delete(data["rect_id"])
-            # Vẽ nét đứt nháp
-            data["rect_id"] = data["canvas"].create_rectangle(event.x, event.y, event.x, event.y, outline=ACCENT_MAIN, width=2, dash=(4, 4), tags="selection_rect")
-        else: # Trở về mặc định là kéo thả bản vẽ
+            data["rect_id"] = data["canvas"].create_rectangle(
+                event.x, event.y, event.x, event.y, 
+                outline=ACCENT_MAIN, width=2, dash=(4, 4), tags="selection_rect"
+            )
+            
+        # 🚀 MẶC ĐỊNH: KÉO THẢ DI CHUYỂN BẢN VẼ
+        else: 
             data["canvas"].config(cursor="fleur")
             data["drag_data"]["x"] = event.x
             data["drag_data"]["y"] = event.y
@@ -570,8 +679,10 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
+        # 🚀 CHẶN LỖI TELEPORT: Đang cầm súng MARK hoặc cầm TẨY ERASE thì cấm kéo bản vẽ bằng chuột trái!
+        if getattr(self, "current_action", None) in ["MARK", "ERASE"]: return
+        
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
-            # Co giãn hình chữ nhật theo tay kéo
             start_x = data["drag_data"]["start_x"]
             start_y = data["drag_data"]["start_y"]
             data["canvas"].coords(data.get("rect_id"), start_x, start_y, event.x, event.y)
@@ -582,23 +693,23 @@ class PromaEnterpriseApp(ctk.CTk):
             data["img_pos"][1] += dy
             data["drag_data"]["x"], data["drag_data"]["y"] = event.x, event.y
 
-    # 🚀 HÀM MỚI: CHỐT TỌA ĐỘ KHI NHẢ CHUỘT
-    # 🚀 HÀM MỚI: ĐÃ ÉP KIỂU SẠCH SẼ VÀ ĐỂ NGUYÊN KHUNG CHỌN
     def on_drag_release(self, event):
         if not self.active_tab_name: return
+        
+        # 🚀 CHẶN LỖI: Cầm súng MARK hay cầm TẨY ERASE thì đéo tính toán nhả chuột trái!
+        if getattr(self, "current_action", None) in ["MARK", "ERASE"]: return
+
         if not hasattr(self, 'area_mode_var') or self.area_mode_var.get() == "Toàn bản vẽ": return
         
         data = self.tabs[self.active_tab_name]
-        data["canvas"].config(cursor="") # Trả lại trỏ chuột thường
+        data["canvas"].config(cursor="")
         
-        # Lấy tọa độ an toàn và ép kiểu int
         drag_data = data.get("drag_data", {})
         start_x = int(drag_data.get("start_x", event.x))
         start_y = int(drag_data.get("start_y", event.y))
         end_x = int(event.x)
         end_y = int(event.y)
         
-        # Nếu lỡ tay click nhẹ (không kéo), hủy vùng chọn
         if abs(end_x - start_x) < 10 or abs(end_y - start_y) < 10:
             data["vung_chon_pdf"] = None
             rect_id = data.get("rect_id")
@@ -606,7 +717,6 @@ class PromaEnterpriseApp(ctk.CTk):
             self.log_to_terminal("Đã hủy vùng chọn.", "sys")
             return
             
-        # 🚀 Ép từ Tọa độ Màn hình về Tọa độ PDF (Ép float rõ ràng)
         img_pos = data.get("img_pos", [0, 0])
         pos_x = float(img_pos[0])
         pos_y = float(img_pos[1])
@@ -619,6 +729,72 @@ class PromaEnterpriseApp(ctk.CTk):
         
         data["vung_chon_pdf"] = [px0, py0, px1, py1]
         self.log_to_terminal(f"🎯 Đã khoanh vùng mục tiêu! Bấm Kích Hoạt để đếm.", "success")
+        
+    # ==========================================
+    # 🚀 TÍNH NĂNG CHUỘT GIỮA (PAN BẢN VẼ NHƯ AUTOCAD)
+    # ==========================================
+    def on_middle_drag_start(self, event):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        data["canvas"].config(cursor="fleur") # Biến thành bàn tay 4 hướng
+        data["drag_data"]["mid_x"] = event.x
+        data["drag_data"]["mid_y"] = event.y
+
+    def on_middle_drag_motion(self, event):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        dx, dy = event.x - data["drag_data"]["mid_x"], event.y - data["drag_data"]["mid_y"]
+        data["canvas"].move("pdf_img", dx, dy)
+        data["img_pos"][0] += dx
+        data["img_pos"][1] += dy
+        data["drag_data"]["mid_x"], data["drag_data"]["mid_y"] = event.x, event.y
+
+    def on_middle_drag_release(self, event):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        
+        # Trả lại trỏ chuột tùy theo việc sếp đang cầm súng hay đang chọn vùng
+        if getattr(self, "current_action", None) == "MARK" or (hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng"):
+            data["canvas"].config(cursor="crosshair")
+        else:
+            data["canvas"].config(cursor="")
+
+    # ==========================================
+    # 🚀 BÚA TẨY CHUỘT PHẢI THẦN THÁNH (RIGHT-CLICK ERASER)
+    # ==========================================
+    def on_right_click(self, event):
+        if not self.active_tab_name: return
+        
+        # TRƯỜNG HỢP 1: Đang cầm súng Mark -> Nhấp chuột phải là Undo điểm vừa chấm
+        if getattr(self, "current_action", None) == "MARK":
+            self.undo_manual_mark()
+            return
+
+        # TRƯỜNG HỢP 2: Chế độ bình thường -> Rẽ chuột phải trúng ô nào xóa vĩnh viễn ô đó!
+        data = self.tabs[self.active_tab_name]
+        pos_x, pos_y = data["img_pos"]
+        zoom = data["zoom_level"]
+        
+        # Tọa độ mũi chuột trên PDF
+        px = (event.x - pos_x) / zoom
+        py = (event.y - pos_y) / zoom
+        
+        trang = data["current_page"]
+        markers_trang_nay = data.get("markers", {}).get(trang, {})
+        
+        for ma_den, thong_tin in markers_trang_nay.items():
+            if not data["layer_visibility"].get(ma_den, True): continue
+            
+            # Quét tìm xem mũi chuột phải có nằm trong ô vuông nào không (Sai số +-8 points cho dễ bấm)
+            for i, box in enumerate(thong_tin["toa_do"]):
+                if (box[0] - 8) <= px <= (box[2] + 8) and (box[1] - 8) <= py <= (box[3] + 8):
+                    thong_tin["toa_do"].pop(i) # Chém bay ô vuông trúng đạn
+                    thong_tin["so_luong"] -= 1
+                    
+                    self.log_to_terminal(f"🗑️ Đã xóa 1 điểm chấm của mã [{ma_den}]!", "error")
+                    self.update_layer_manager_counts()
+                    self.render_page(self.active_tab_name, redraw_pdf=False)
+                    return # Xóa 1 điểm mỗi lần click rồi nghỉ
 
     def on_zoom(self, event):
         if not self.active_tab_name: return
@@ -712,9 +888,34 @@ class PromaEnterpriseApp(ctk.CTk):
         if thanh_cong:
             data_dem = ket_qua.get("data", {})
             if data_dem:
-                self.log_to_terminal("Đã hoàn tất đếm. Đang đóng dấu lên bản vẽ...", "success")
+                self.log_to_terminal("Đã hoàn tất đếm. Đang đồng bộ tọa độ xoay...", "success")
                 if "markers" not in data_tab: data_tab["markers"] = {}
                 trang_hien_tai = data_tab["current_page"]
+                
+                # 🚀 THUẬT TOÁN ĐỒNG BỘ GÓC XOAY: Nắn tọa độ AI từ file gốc theo góc xoay hiện tại của màn hình
+                page = data_tab["pdf_doc"].load_page(trang_hien_tai)
+                goc_xoay = page.rotation
+                
+                if goc_xoay != 0:
+                    w_goc = page.rect.width if goc_xoay in [0, 180] else page.rect.height
+                    h_goc = page.rect.height if goc_xoay in [0, 180] else page.rect.width
+                    
+                    for ma_den, thong_tin in data_dem.items():
+                        toa_do_da_xoay = []
+                        for box in thong_tin["toa_do"]:
+                            x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
+                            # Xoay tương ứng với góc 90, 180, 270 độ
+                            if goc_xoay == 90:
+                                nx0, ny0, nx1, ny1 = h_goc - y1, x0, h_goc - y0, x1
+                            elif goc_xoay == 180:
+                                nx0, ny0, nx1, ny1 = w_goc - x1, h_goc - y1, w_goc - x0, h_goc - y0
+                            elif goc_xoay == 270:
+                                nx0, ny0, nx1, ny1 = y0, w_goc - x1, y1, w_goc - x0
+                            else:
+                                nx0, ny0, nx1, ny1 = x0, y0, x1, y1
+                            toa_do_da_xoay.append([min(nx0, nx1), min(ny0, ny1), max(nx0, nx1), max(ny0, ny1)])
+                        thong_tin["toa_do"] = toa_do_da_xoay
+
                 data_tab["markers"][trang_hien_tai] = data_dem
                 
                 for ma_den, thong_tin in data_dem.items():
@@ -729,22 +930,176 @@ class PromaEnterpriseApp(ctk.CTk):
                 self.log_to_terminal("Không tìm thấy vật thể nào trong vùng này!", "sys")
         else:
             self.log_to_terminal(f"LỖI HỆ THỐNG: {ket_qua}", "error")
-    # 🚀 KIẾN TRÚC MỚI: MỞ RỘNG TOUCH BAR KHI BẤM INSERT
-    def toggle_touchbar_insert(self):
-        # 1. Quét sạch các nút cũ trên Touch Bar
-        for widget in self.touch_bar.winfo_children():
-            widget.destroy()
-            
-        # 2. In cái chữ mờ mờ vào chờ sếp ra lệnh dàn quân
-        ctk.CTkLabel(
-            self.touch_bar, 
-            text="[ TÍNH NĂNG INSERT - ĐANG CHỜ SẾP ĐỔ CODE VÀO ]", 
-            font=("Consolas", 12, "bold"), text_color=TEXT_MUTED
-        ).pack(expand=True)
-        
-        self.log_to_terminal("Đã mở nắp Touch Bar Insert. Chờ súng đạn!", "sys")
 
-    # 🚀 KIẾN TRÚC MỚI: XOAY TRANG BẢN VẼ
+    # 🚀 KIẾN TRÚC MỚI: MỞ RỘNG TOUCH BAR KHI BẤM INSERT
+    def close_touchbar(self):
+        for widget in self.touch_bar.winfo_children(): widget.destroy()
+        self.current_action = None
+        
+    def toggle_touchbar_insert(self):
+        if not self.active_tab_name:
+            self.log_to_terminal("Sếp phải mở bản vẽ ra mới xài Insert được chứ!", "error")
+            return
+            
+        self.close_touchbar()
+
+        # Nút 1: Mark (Chấm điểm)
+        btn_mark = ctk.CTkButton(
+            self.touch_bar, text="Mark", width=80, height=28, corner_radius=6, 
+            fg_color="#D5B07C", text_color=BG_DARK, hover_color="#C49A6C", font=("Arial", 12, "bold"), 
+            command=self.start_manual_mark
+        )
+        btn_mark.pack(side="left", padx=(15, 5), pady=4)
+
+        # 🚀 NÚT 2: ERASE (CẦM TẤY XÓA ĐIỂM BẤT KỲ)
+        btn_erase = ctk.CTkButton(
+            self.touch_bar, text="Erase", width=80, height=28, corner_radius=6, 
+            fg_color="#B3543E", text_color="#FFFFFF", hover_color="#8F3C29", font=("Arial", 12, "bold"), 
+            command=self.start_erase_mode
+        )
+        btn_erase.pack(side="left", padx=5, pady=4)
+
+        btn_close = ctk.CTkButton(
+            self.touch_bar, text="✖", width=28, height=28, corner_radius=6, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#B3543E", 
+            command=self.close_touchbar
+        )
+        btn_close.pack(side="right", padx=10, pady=4)
+
+    # ==========================================
+    # 🚀 TÍNH NĂNG INSERT: MARK THỦ CÔNG & TẤY (ERASE)
+    # ==========================================
+
+    # --- 1. KÍCH HOẠT CHẤM MARK ---
+    def start_manual_mark(self):
+        if not self.active_tab_name: return
+        
+        dialog = ctk.CTkInputDialog(text="Nhập tên Ký hiệu (VD: MARK-01):", title="Tạo Layer Mark")
+        layer_name = dialog.get_input()
+        
+        if not layer_name: 
+            self.log_to_terminal("Đã hủy chấm điểm thủ công.", "sys")
+            return
+            
+        layer_name = layer_name.upper().strip()
+        data = self.tabs[self.active_tab_name]
+
+        if layer_name not in data["bang_mau_vat_the"]:
+            mau_moi = self.danh_sach_mau[self.mau_index % len(self.danh_sach_mau)]
+            data["bang_mau_vat_the"][layer_name] = mau_moi
+            self.mau_index += 1
+            data["layer_visibility"][layer_name] = True
+            
+            trang_hien_tai = data["current_page"]
+            if "markers" not in data: data["markers"] = {}
+            if trang_hien_tai not in data["markers"]: data["markers"][trang_hien_tai] = {}
+            if layer_name not in data["markers"][trang_hien_tai]:
+                data["markers"][trang_hien_tai][layer_name] = {"so_luong": 0, "toa_do": []}
+                
+            self.add_layer_toggle_ui(layer_name, mau_moi, 0)
+
+        self.current_action = "MARK"
+        self.current_mark_layer = layer_name
+        data["canvas"].config(cursor="crosshair") 
+
+        # 🚀 DỌN SẠCH TOUCH BAR - CHỈ HIỆN ĐÚNG STATUS SIÊU GỌN
+        for widget in self.touch_bar.winfo_children(): widget.destroy()
+
+        ctk.CTkLabel(
+            self.touch_bar, text=f"MARKING: [ {layer_name} ]", 
+            font=("Consolas", 13, "bold"), text_color=ACCENT_MAIN
+        ).pack(side="left", padx=20)
+        
+        ctk.CTkLabel(
+            self.touch_bar, text="Ctrl+Z: Undo  |  Enter / ESC: Chốt sổ", 
+            font=("Consolas", 11, "italic"), text_color=TEXT_MUTED
+        ).pack(side="left", padx=10)
+
+        # 🚀 TRÓI CHẶT PHÍM ENTER VÀ ESC VÀO TOÀN APP
+        self.bind("<Control-z>", self.undo_manual_mark)
+        self.bind("<Return>", self.finish_manual_mark)
+        self.bind("<Escape>", self.finish_manual_mark)
+        data["canvas"].bind("<Return>", self.finish_manual_mark)
+        data["canvas"].bind("<Escape>", self.finish_manual_mark)
+        
+        data["canvas"].focus_set()
+        self.log_to_terminal(f"Đã lên đạn mã {layer_name}. Gõ Enter hoặc ESC để thu súng!", "action")
+
+    # --- 2. UNDO ĐIỂM CHẤM GẦN NHẤT (CTRL+Z) ---
+    def undo_manual_mark(self, event=None):
+        if getattr(self, "current_action", None) != "MARK": return
+        data = self.tabs.get(self.active_tab_name)
+        if not data: return
+        
+        trang = data["current_page"]
+        ma_den = self.current_mark_layer
+        thong_tin = data.get("markers", {}).get(trang, {}).get(ma_den)
+        
+        if thong_tin and len(thong_tin["toa_do"]) > 0:
+            thong_tin["toa_do"].pop() 
+            thong_tin["so_luong"] -= 1
+            self.update_layer_manager_counts()
+            self.render_page(self.active_tab_name, redraw_pdf=False)
+            self.log_to_terminal(f"↩ Đã Undo 1 điểm chấm của {ma_den}.", "sys")
+
+    # --- 3. CHỐT SỔ MARK ---
+    def finish_manual_mark(self, event=None):
+        self.current_action = None
+        self.current_mark_layer = None
+        if self.active_tab_name:
+            data = self.tabs[self.active_tab_name]
+            data["canvas"].config(cursor="") 
+            data["canvas"].unbind("<Return>")
+            data["canvas"].unbind("<Escape>")
+            
+        self.unbind("<Control-z>")
+        self.unbind("<Return>")
+        self.unbind("<Escape>")
+        self.log_to_terminal("Đã chốt sổ điểm chấm thủ công, về chuột thường!", "success")
+        self.toggle_touchbar_insert()
+
+    # --- 4. KÍCH HOẠT CHẾ ĐỘ TẤY (ERASE) ---
+    def start_erase_mode(self):
+        if not self.active_tab_name: return
+        self.current_action = "ERASE"
+        data = self.tabs[self.active_tab_name]
+        data["canvas"].config(cursor="X_cursor") 
+        
+        # 🚀 DỌN SẠCH TOUCH BAR - CHỈ HIỆN ĐÚNG STATUS TẤY
+        for widget in self.touch_bar.winfo_children(): widget.destroy()
+        
+        ctk.CTkLabel(
+            self.touch_bar, text="ERASING: [ Click chuột trái vào bất kỳ ô nào để xóa ]", 
+            font=("Consolas", 13, "bold"), text_color="#B3543E"
+        ).pack(side="left", padx=20)
+        
+        ctk.CTkLabel(
+            self.touch_bar, text="Enter / ESC: Chốt sổ", 
+            font=("Consolas", 11, "italic"), text_color=TEXT_MUTED
+        ).pack(side="left", padx=10)
+        
+        self.bind("<Return>", self.finish_erase_mode)
+        self.bind("<Escape>", self.finish_erase_mode)
+        data["canvas"].bind("<Return>", self.finish_erase_mode)
+        data["canvas"].bind("<Escape>", self.finish_erase_mode)
+        
+        data["canvas"].focus_set()
+        self.log_to_terminal("Đã cầm Tẩy trên tay! Gõ Enter hoặc ESC để cất tẩy.", "action")
+
+    # --- 5. CHỐT SỔ TẤY ---
+    def finish_erase_mode(self, event=None):
+        self.current_action = None
+        if self.active_tab_name:
+            data = self.tabs[self.active_tab_name]
+            data["canvas"].config(cursor="")
+            data["canvas"].unbind("<Return>")
+            data["canvas"].unbind("<Escape>")
+            
+        self.unbind("<Return>")
+        self.unbind("<Escape>")
+        self.log_to_terminal("Đã cất Tẩy, trở lại chuột thường.", "success")
+        self.toggle_touchbar_insert()
+
     # 🚀 KIẾN TRÚC MỚI: XOAY TRANG BẢN VẼ (VÀ XOAY CẢ KÝ HIỆU)
     def rotate_page(self):
         if not self.active_tab_name: return
