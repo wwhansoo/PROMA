@@ -46,7 +46,7 @@ CLOSE_BTN_HOVER = "#EF4444"
 class PromaEnterpriseApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Proma - ")
+        self.title("Proma.")
         self.geometry("1440x880")
         self.configure(fg_color=BG_DARK)
 
@@ -79,15 +79,15 @@ class PromaEnterpriseApp(ctk.CTk):
         try:
             img_goc = Image.open(logo_filename)
             w_goc, h_goc = img_goc.size
-            anh_logo = ctk.CTkImage(light_image=img_goc, dark_image=img_goc, size=(int(w_goc*(170/h_goc)), 170))
+            anh_logo = ctk.CTkImage(light_image=img_goc, dark_image=img_goc, size=(int(w_goc*(160/h_goc)), 160))
             ctk.CTkLabel(self.splash_frame, text="", image=anh_logo).pack(pady=(190, 15))
         except FileNotFoundError:
             ctk.CTkLabel(self.splash_frame, text="PROMA // CORE", font=("Consolas", 42, "bold"), text_color=ACCENT_MAIN).pack(pady=(190, 15))
 
         # Badge Version kỹ thuật số chuẩn Scale AI
 
-        ctk.CTkLabel(self.splash_frame, text="PROMA.", font=("EB Garamond ExtraBold", 60, "bold"), text_color=TEXT_MAIN).pack(pady=(0, 4))
-        ctk.CTkLabel(self.splash_frame, text="Time to break ground!", font=("EB Garamond", 24), text_color=TEXT_MUTED).pack(pady=(0, 45))
+        ctk.CTkLabel(self.splash_frame, text="PROMA.", font=("EB Garamond ExtraBold", 54, "bold"), text_color=TEXT_MAIN).pack(pady=(0, 4))
+        ctk.CTkLabel(self.splash_frame, text="The smarter way to manage construction projects.", font=("EB Garamond", 20), text_color=TEXT_MUTED).pack(pady=(0, 45))
 
         # Nút bấm góc nhọn 4px chuẩn precision engineering tool
         ctk.CTkButton(
@@ -129,7 +129,7 @@ class PromaEnterpriseApp(ctk.CTk):
         self.toolbar_left = ctk.CTkFrame(self.top_toolbar, fg_color="transparent")
         self.toolbar_left.pack(side="left", fill="y", padx=(18, 8))
 
-        ctk.CTkLabel(self.toolbar_left, text="P//", font=("Consolas", 22, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(0, 16))
+        ctk.CTkLabel(self.toolbar_left, text="P.", font=("Montserrat Bold", 25, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(0, 16))
 
         ctk.CTkButton(
             self.toolbar_left, text="OPEN", width=64, height=28, corner_radius=4, 
@@ -231,8 +231,8 @@ class PromaEnterpriseApp(ctk.CTk):
         self.right_panel.grid_propagate(False)
 
         ctk.CTkLabel(
-            self.right_panel, text="// DETECTION MODEL MODE", 
-            font=("Consolas", 11, "bold"), text_color=ACCENT_MAIN
+            self.right_panel, text="MODE", 
+            font=("Consolas", 15, "bold"), text_color=ACCENT_MAIN
         ).pack(anchor="w", padx=20, pady=(20, 6))
 
         self.mode_var = ctk.StringVar(value="Vật thể")
@@ -244,8 +244,8 @@ class PromaEnterpriseApp(ctk.CTk):
         self.mode_selector.pack(fill="x", padx=20, pady=4)
 
         ctk.CTkLabel(
-            self.right_panel, text="// TAKEOFF BOUNDING SCOPE", 
-            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
+            self.right_panel, text="REGION", 
+            font=("Consolas", 15, "bold"), text_color=TEXT_MUTED
         ).pack(anchor="w", padx=20, pady=(16, 6))
         
         self.area_mode_var = ctk.StringVar(value="Toàn bản vẽ")
@@ -257,7 +257,7 @@ class PromaEnterpriseApp(ctk.CTk):
         self.area_selector.pack(fill="x", padx=20, pady=(0, 12))
 
         self.btn_learn_legend = ctk.CTkButton(
-            self.right_panel, text="[ 📖 TRAIN LEGEND SYMBOLS ]", height=38, corner_radius=4, 
+            self.right_panel, text="[ 📖 Learn Symbols ]", height=38, corner_radius=4, 
             font=("Consolas", 12, "bold"), fg_color="#18181B", hover_color="#27272A", 
             text_color=ACCENT_MAIN, border_width=1, border_color=ACCENT_MAIN,
             command=self.train_legend_action
@@ -265,22 +265,17 @@ class PromaEnterpriseApp(ctk.CTk):
         self.btn_learn_legend.pack(fill="x", padx=20, pady=(4, 6))
 
         self.btn_run = ctk.CTkButton(
-            self.right_panel, text="RUN QUANTITY DETECTOR >>", height=46, corner_radius=4, 
+            self.right_panel, text="BREAK GROUND", height=46, corner_radius=4, 
             font=("Consolas", 14, "bold"), fg_color=ACCENT_MAIN, 
             hover_color=ACCENT_HOVER, text_color=BG_DARK, 
             border_width=1, border_color="#E6A86E",
             command=self.run_engine
         )
         self.btn_run.pack(fill="x", padx=20, pady=(8, 16))
-
-        ctk.CTkLabel(
-            self.right_panel, text="// ANNOTATION LAYER MANAGER", 
-            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
-        ).pack(anchor="w", padx=20, pady=(0, 6))
         
         self.master_switch_var = ctk.BooleanVar(value=True)
         self.master_switch = ctk.CTkSwitch(
-            self.right_panel, text="VISIBILITY ALL LAYERS", font=("Consolas", 11, "bold"), 
+            self.right_panel, text="LAYERS", font=("Consolas", 11, "bold"), 
             text_color=TEXT_MAIN, progress_color=ACCENT_MAIN, 
             variable=self.master_switch_var, command=self.toggle_all_layers
         )
