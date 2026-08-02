@@ -18,27 +18,36 @@ if THU_MUC_GOC not in sys.path:
     sys.path.append(THU_MUC_GOC)
 
 # ==========================================
-# CẤU HÌNH PALETTE MÀU TỐI GIẢN
+# 🚀 CẤU HÌNH PALETTE "SCALE AI // PROMA OBSIDIAN"
 # ==========================================
 ctk.set_appearance_mode("dark")
-BG_DARK = "#120C08"       # Nền tối sâu hơn
-PANEL_BG = "#1E150F"      # Panel xám đen
-ACCENT_MAIN = "#B07D4C"   
-ACCENT_HOVER = "#C49A6C"  
-TEXT_MAIN = "#F5F5DC"     
-TEXT_MUTED = "#8A7969"    
-GRID_COLOR = "#33261D"    
 
-TAB_ACTIVE = PANEL_BG     
-TAB_INACTIVE = "#100B07"  
-TAB_HOVER = "#241810"     
-CLOSE_BTN_HOVER = "#B3543E" 
+# Nền đen Obsidian & Xám Zinc chuẩn Scale AI / Palantir
+BG_DARK = "#120C08"          # Đen sâu tuyệt đối (Obsidian Black)
+PANEL_BG = "#121215"         # Xám nhám kim loại technical
+PANEL_BORDER = "#27272A"     # Viền lưới độ chính xác cao 1px (Zinc 800)
+
+# Màu Nâu Vàng PROMA Amber Bronze (AI Laser Glow)
+ACCENT_MAIN = "#B07D4C"      # Nâu vàng kim loại đặc trưng
+ACCENT_HOVER = "#D98B48"     # Hover rực sáng amber
+ACCENT_MUTED = "#452A14"     # Nâu trầm technical
+
+# Typography kỹ thuật số
+TEXT_MAIN = "#FAFAFA"        # Trắng tinh khiết Zinc 50
+TEXT_MUTED = "#71717A"       # Xám kỹ thuật Zinc 500
+GRID_COLOR = "#18181B"       # Lưới bản vẽ ngầm Zinc 900
+
+# Trạng thái Workspace
+TAB_ACTIVE = "#18181B"       
+TAB_INACTIVE = "#09090B"     
+TAB_HOVER = "#27272A"        
+CLOSE_BTN_HOVER = "#EF4444"  
 
 class PromaEnterpriseApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("PROMA // Takeoff Workspace (VIE)")
-        self.geometry("1400x850")
+        self.title("Proma - ")
+        self.geometry("1440x880")
         self.configure(fg_color=BG_DARK)
 
         self.tabs = {}
@@ -47,17 +56,17 @@ class PromaEnterpriseApp(ctk.CTk):
         self.zoom_timer = None
 
         self.danh_sach_mau = [
-            "#E63946", "#F4A261", "#2A9D8F", "#E9C46A", "#9B5DE5", 
-            "#00F5D4", "#F15BB5", "#00BBF9", "#FEE440", "#F94144",
-            "#F3722C", "#F8961E", "#43AA8B", "#577590", "#277DA1",
-            "#9D4EDD", "#FF99C8", "#38B000", "#7209B7", "#FF006E"
+            "#F87171", "#FB923C", "#FACC15", "#4ADE80", "#2DD4BF", 
+            "#38BDF8", "#818CF8", "#C084FC", "#F472B6", "#FB7185",
+            "#E879F9", "#A78BFA", "#34D399", "#60A5FA", "#FBBF24",
+            "#F43F5E", "#10B981", "#06B6D4", "#6366F1", "#D946EF"
         ]
         self.mau_index = 0
 
         self.show_splash_screen()
 
     # ==========================================
-    # KHU VỰC 1: SPLASH SCREEN
+    # KHU VỰC 1: SPLASH SCREEN (SCALE AI FOUNDRY BOOT STYLE)
     # ==========================================
     def show_splash_screen(self):
         self.splash_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -70,18 +79,22 @@ class PromaEnterpriseApp(ctk.CTk):
         try:
             img_goc = Image.open(logo_filename)
             w_goc, h_goc = img_goc.size
-            anh_logo = ctk.CTkImage(light_image=img_goc, dark_image=img_goc, size=(int(w_goc*(200/h_goc)), 200))
-            ctk.CTkLabel(self.splash_frame, text="", image=anh_logo).pack(pady=(220, 10))
+            anh_logo = ctk.CTkImage(light_image=img_goc, dark_image=img_goc, size=(int(w_goc*(170/h_goc)), 170))
+            ctk.CTkLabel(self.splash_frame, text="", image=anh_logo).pack(pady=(190, 15))
         except FileNotFoundError:
-            ctk.CTkLabel(self.splash_frame, text="[ LOGO PROMA ]", font=("Montserrat Bold", 45, "bold"), text_color=ACCENT_MAIN).pack(pady=(220, 10))
+            ctk.CTkLabel(self.splash_frame, text="PROMA // CORE", font=("Consolas", 42, "bold"), text_color=ACCENT_MAIN).pack(pady=(190, 15))
 
-        ctk.CTkLabel(self.splash_frame, text="Proma.", font=("EB Garamond ExtraBold", 75, "bold"), text_color=TEXT_MAIN).pack(pady=(10, 5))
-        ctk.CTkLabel(self.splash_frame, text="Ready to break ground!", font=("EB Garamond", 30), text_color=TEXT_MUTED).pack(pady=(0, 40))
+        # Badge Version kỹ thuật số chuẩn Scale AI
 
+        ctk.CTkLabel(self.splash_frame, text="PROMA.", font=("EB Garamond ExtraBold", 60, "bold"), text_color=TEXT_MAIN).pack(pady=(0, 4))
+        ctk.CTkLabel(self.splash_frame, text="Time to break ground!", font=("EB Garamond", 24), text_color=TEXT_MUTED).pack(pady=(0, 45))
+
+        # Nút bấm góc nhọn 4px chuẩn precision engineering tool
         ctk.CTkButton(
-            self.splash_frame, text="TẢI BẢN VẼ (LOAD PDF)", height=55, width=280, 
-            corner_radius=8, font=("Montserrat Bold", 16, "bold"),
+            self.splash_frame, text="UPLOAD PROJECT (.PDF)", height=48, width=280, 
+            corner_radius=4, font=("Consolas", 16, "bold"),
             fg_color=ACCENT_MAIN, hover_color=ACCENT_HOVER, text_color=BG_DARK,
+            border_width=1, border_color="#E6A86E",
             command=self.open_first_pdf
         ).pack()
 
@@ -97,168 +110,238 @@ class PromaEnterpriseApp(ctk.CTk):
         if filepath: self.add_new_tab(filepath)
 
     # ==========================================
-    # KHU VỰC 2: WORKSPACE (ĐÃ TRẢM SIDEBAR)
+    # KHU VỰC 2: WORKSPACE (SCALE AI ANNOTATION STUDIO)
     # ==========================================
     def build_workspace(self):
-        # 🚀 KIẾN TRÚC LƯỚI MỚI (CHỈ CÒN 2 CỘT CHÍNH: BẢN VẼ VÀ ĐỘNG CƠ)
-        self.grid_rowconfigure(0, weight=0) # Dành đất cho Top Ribbon
-        self.grid_rowconfigure(1, weight=1) # Dành đất cho Không gian làm việc
-        self.grid_columnconfigure(0, weight=1) # Cột Bản vẽ
-        self.grid_columnconfigure(1, weight=0) # Cột Menu phải
+        self.grid_rowconfigure(0, weight=0) 
+        self.grid_rowconfigure(1, weight=1) 
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=0) 
 
         # ==========================================
-        # 🚀 TOP TOOLBAR - MACBOOK TOUCH BAR STYLE
+        # 🚀 TOP HUD TOOLBAR (PRECISION ZINC 800 BORDERS)
         # ==========================================
-        self.top_toolbar = ctk.CTkFrame(self, height=50, corner_radius=0, fg_color=BG_DARK)
+        self.top_toolbar = ctk.CTkFrame(self, height=52, corner_radius=0, fg_color=BG_DARK)
         self.top_toolbar.grid(row=0, column=0, columnspan=2, sticky="ew")
         self.top_toolbar.pack_propagate(False) 
 
-        # --- [TRÁI] LOGO & NÚT CƠ BẢN ---
+        # --- [TRÁI] BRAND & CORE TOOLS ---
         self.toolbar_left = ctk.CTkFrame(self.top_toolbar, fg_color="transparent")
-        self.toolbar_left.pack(side="left", fill="y", padx=(20, 10))
+        self.toolbar_left.pack(side="left", fill="y", padx=(18, 8))
 
-        ctk.CTkLabel(self.toolbar_left, text="P.", font=("Montserrat Bold", 28, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(0, 15))
+        ctk.CTkLabel(self.toolbar_left, text="P//", font=("Consolas", 22, "bold"), text_color=ACCENT_MAIN).pack(side="left", padx=(0, 16))
 
-        ctk.CTkButton(self.toolbar_left, text="📂 OPEN", width=70, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Montserrat Bold", 12, "bold"), command=self.open_additional_pdf).pack(side="left", padx=5)
-        ctk.CTkButton(self.toolbar_left, text="💾 EXPORT", width=70, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#2E2018", font=("Montserrat Bold", 12, "bold"), command=self.export_markup_pdf).pack(side="left", padx=5)
+        ctk.CTkButton(
+            self.toolbar_left, text="OPEN", width=64, height=28, corner_radius=4, 
+            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color=TAB_HOVER, 
+            font=("Consolas", 11, "bold"), border_width=1, border_color=PANEL_BORDER,
+            command=self.open_additional_pdf
+        ).pack(side="left", padx=3)
+
+        ctk.CTkButton(
+            self.toolbar_left, text="EXPORT", width=70, height=28, corner_radius=4, 
+            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color=TAB_HOVER, 
+            font=("Consolas", 11, "bold"), border_width=1, border_color=PANEL_BORDER,
+            command=self.export_markup_pdf
+        ).pack(side="left", padx=3)
         
-        # Nút INSERT (Gắn bùa bật tắt Touch Bar)
-        self.btn_insert = ctk.CTkButton(self.toolbar_left, text="✚ INSERT", width=80, height=32, corner_radius=6, fg_color=ACCENT_MAIN, text_color=BG_DARK, hover_color=ACCENT_HOVER, font=("Montserrat Bold", 12, "bold"), command=self.toggle_touchbar_insert)
-        self.btn_insert.pack(side="left", padx=5)
+        self.btn_insert = ctk.CTkButton(
+            self.toolbar_left, text="+ INSERT", width=84, height=28, corner_radius=4, 
+            fg_color=ACCENT_MAIN, text_color=BG_DARK, hover_color=ACCENT_HOVER, 
+            font=("Consolas", 11, "bold"), border_width=1, border_color="#E6A86E",
+            command=self.toggle_touchbar_insert
+        )
+        self.btn_insert.pack(side="left", padx=(6, 3))
 
-        # --- [GIỮA] TOUCH BAR DYNAMIC SCREEN ---
-        self.touch_bar = ctk.CTkFrame(self.top_toolbar, height=36, corner_radius=8, fg_color=PANEL_BG, border_width=1, border_color="#2C2C2E")
-        self.touch_bar.pack(side="left", fill="both", expand=True, padx=10, pady=7)
+        # --- [GIỮA] TELEMETRY TOUCH BAR (BẢNG ĐIỀU KHIỂN HUD 4PX) ---
+        self.touch_bar = ctk.CTkFrame(
+            self.top_toolbar, height=32, corner_radius=4, 
+            fg_color="#0E0E11", border_width=1, border_color=PANEL_BORDER
+        )
+        self.touch_bar.pack(side="left", fill="both", expand=True, padx=12, pady=10)
         self.touch_bar.pack_propagate(False)
 
-        # --- [PHẢI] XOAY TRANG & CHUYỂN TRANG ---
+        # --- [PHẢI] DISPLAY CONTROLS & NAV ---
         self.toolbar_right = ctk.CTkFrame(self.top_toolbar, fg_color="transparent")
-        self.toolbar_right.pack(side="right", fill="y", padx=(10, 20))
+        self.toolbar_right.pack(side="right", fill="y", padx=(8, 18))
 
-        # Nút Xoay Trang ngạo nghễ
-        ctk.CTkButton(self.toolbar_right, text="⟳ XOAY", width=60, height=32, corner_radius=6, fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#3A3A3C", font=("Montserrat Bold", 12, "bold"), command=self.rotate_page).pack(side="left", padx=(0, 15))
+        ctk.CTkButton(
+            self.toolbar_right, text="⟳ ROTATE", width=74, height=28, corner_radius=4, 
+            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color=TAB_HOVER, 
+            font=("Consolas", 11, "bold"), border_width=1, border_color=PANEL_BORDER,
+            command=self.rotate_page
+        ).pack(side="left", padx=3)
 
-        # 🚀 NÚT MONOCHROME (CHUYỂN NỀN BẢN VẼ SANG TRẮNG ĐEN / GRAYSCALE)
         self.btn_mono = ctk.CTkButton(
-            self.toolbar_right, text="◐ MONO", width=75, height=32, corner_radius=6, 
-            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color="#3A3A3C", font=("Arial", 12, "bold"), 
+            self.toolbar_right, text="◐ MONO", width=68, height=28, corner_radius=4, 
+            fg_color=PANEL_BG, text_color=TEXT_MAIN, hover_color=TAB_HOVER, 
+            font=("Consolas", 11, "bold"), border_width=1, border_color=PANEL_BORDER,
             command=self.toggle_monochrome
         )
-        self.btn_mono.pack(side="left", padx=(0, 15))
+        self.btn_mono.pack(side="left", padx=(3, 14))
 
-        # Cụm chuyển trang siêu tinh gọn
+        # Pager Controls kỹ thuật
         self.nav_frame = ctk.CTkFrame(self.toolbar_right, fg_color="transparent")
-        self.nav_frame.pack(side="left", pady=9)
-        ctk.CTkButton(self.nav_frame, text="❮", width=28, height=28, corner_radius=6, fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", font=("Montserrat Bold", 14, "bold"), command=self.prev_page).pack(side="left", padx=2)
+        self.nav_frame.pack(side="left", pady=10)
         
-        self.lbl_page = ctk.CTkLabel(self.nav_frame, text="00 / 00", font=("Consolas", 13, "bold"), text_color=TEXT_MAIN)
+        ctk.CTkButton(
+            self.nav_frame, text="❮", width=24, height=24, corner_radius=4, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color=TAB_HOVER, 
+            font=("Consolas", 12, "bold"), command=self.prev_page
+        ).pack(side="left", padx=1)
+        
+        self.lbl_page = ctk.CTkLabel(
+            self.nav_frame, text="00 / 00", 
+            font=("Consolas", 12, "bold"), text_color=TEXT_MAIN
+        )
         self.lbl_page.pack(side="left", padx=8)
         
-        ctk.CTkButton(self.nav_frame, text="❯", width=28, height=28, corner_radius=6, fg_color="transparent", text_color=TEXT_MUTED, hover_color="#3A3A3C", font=("Montserrat Bold", 14, "bold"), command=self.next_page).pack(side="left", padx=2)
+        ctk.CTkButton(
+            self.nav_frame, text="❯", width=24, height=24, corner_radius=4, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color=TAB_HOVER, 
+            font=("Consolas", 12, "bold"), command=self.next_page
+        ).pack(side="left", padx=1)
 
-        # Kẻ vạch mờ ranh giới
-        ctk.CTkFrame(self, height=1, corner_radius=0, fg_color=PANEL_BG).grid(row=0, column=0, columnspan=2, sticky="sew")
+        # Đường viền ngăn cách sắc nét
+        ctk.CTkFrame(self, height=1, corner_radius=0, fg_color=PANEL_BORDER).grid(row=0, column=0, columnspan=2, sticky="sew")
 
-        # --- CENTER AREA (Không gian bản vẽ đã rộng tối đa) ---
+        # --- CENTER ANNOTATION AREA ---
         self.center_frame = ctk.CTkFrame(self, fg_color="transparent")
-
-        # --- CENTER AREA (Không gian bản vẽ đã rộng tối đa) ---
-        self.center_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.center_frame.grid(row=1, column=0, sticky="nsew", padx=15, pady=(5, 15))
+        self.center_frame.grid(row=1, column=0, sticky="nsew", padx=16, pady=(8, 14))
         self.center_frame.pack_propagate(False)
 
-        # Tab bar (Bám sát lên trên cùng)
-        self.custom_tab_bar = ctk.CTkScrollableFrame(self.center_frame, height=45, orientation="horizontal", fg_color="transparent", bg_color="transparent")
-        self.custom_tab_bar.pack(side="top", fill="x", pady=(0, 5))
+        # Tab bar thanh mảnh
+        self.custom_tab_bar = ctk.CTkScrollableFrame(
+            self.center_frame, height=38, orientation="horizontal", 
+            fg_color="transparent", bg_color="transparent"
+        )
+        self.custom_tab_bar.pack(side="top", fill="x", pady=(0, 6))
         self.custom_tab_bar._scrollbar.configure(width=0) 
 
-        # Khung Canvas
-        self.canvas_area = ctk.CTkFrame(self.center_frame, corner_radius=12, fg_color=BG_DARK)
+        # Khung Canvas góc vuông 4px precision engineering
+        self.canvas_area = ctk.CTkFrame(
+            self.center_frame, corner_radius=4, 
+            fg_color=BG_DARK, border_width=1, border_color=PANEL_BORDER
+        )
         self.canvas_area.pack(side="top", fill="both", expand=True)
 
-        # --- RIGHT PANEL ---
-        self.right_panel = ctk.CTkFrame(self, width=320, corner_radius=0, fg_color=PANEL_BG)
+        # --- RIGHT PANEL (SCALE AI ENGINE CONTROL) ---
+        self.right_panel = ctk.CTkFrame(self, width=330, corner_radius=0, fg_color=PANEL_BG)
         self.right_panel.grid(row=1, column=1, sticky="nsew")
         self.right_panel.grid_propagate(False)
 
-        ctk.CTkLabel(self.right_panel, text="ENGINE CONTROL", font=("Montserrat Bold", 12, "bold"), text_color=TEXT_MUTED).pack(anchor="w", padx=20, pady=(20, 10))
+        ctk.CTkLabel(
+            self.right_panel, text="// DETECTION MODEL MODE", 
+            font=("Consolas", 11, "bold"), text_color=ACCENT_MAIN
+        ).pack(anchor="w", padx=20, pady=(20, 6))
 
         self.mode_var = ctk.StringVar(value="Vật thể")
-        self.mode_selector = ctk.CTkSegmentedButton(self.right_panel, values=["Vật thể", "Đường ống", "Diện tích"], variable=self.mode_var, selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, text_color=TEXT_MAIN)
-        self.mode_selector.pack(fill="x", padx=20, pady=10)
+        self.mode_selector = ctk.CTkSegmentedButton(
+            self.right_panel, values=["Vật thể", "Đường ống", "Diện tích"], variable=self.mode_var, 
+            selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, 
+            text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=4
+        )
+        self.mode_selector.pack(fill="x", padx=20, pady=4)
 
-        ctk.CTkLabel(self.right_panel, text="PHẠM VI BÓC TÁCH", font=("Montserrat Bold", 12, "bold"), text_color=TEXT_MUTED).pack(anchor="w", padx=20, pady=(15, 5))
+        ctk.CTkLabel(
+            self.right_panel, text="// TAKEOFF BOUNDING SCOPE", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
+        ).pack(anchor="w", padx=20, pady=(16, 6))
+        
         self.area_mode_var = ctk.StringVar(value="Toàn bản vẽ")
-        # 🚀 GẮN THÊM COMMAND DỌN DẸP VÀO NÚT BẤM
         self.area_selector = ctk.CTkSegmentedButton(
             self.right_panel, values=["Toàn bản vẽ", "Kéo chọn vùng"], variable=self.area_mode_var,
-            selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, text_color=TEXT_MAIN
+            selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, 
+            text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=4
         )
-        self.area_selector.pack(fill="x", padx=20, pady=(0, 15))
+        self.area_selector.pack(fill="x", padx=20, pady=(0, 12))
 
         self.btn_learn_legend = ctk.CTkButton(
-            self.right_panel, text="📖 ĐỌC BẢNG KÝ HIỆU (TRAIN)", height=40, corner_radius=6, 
-            font=("Montserrat Bold", 13, "bold"), fg_color=PANEL_BG, hover_color=BG_DARK, text_color=ACCENT_MAIN,
-            border_width=1, border_color=ACCENT_MAIN,
+            self.right_panel, text="[ 📖 TRAIN LEGEND SYMBOLS ]", height=38, corner_radius=4, 
+            font=("Consolas", 12, "bold"), fg_color="#18181B", hover_color="#27272A", 
+            text_color=ACCENT_MAIN, border_width=1, border_color=ACCENT_MAIN,
             command=self.train_legend_action
         )
-        self.btn_learn_legend.pack(fill="x", padx=20, pady=(5, 5))
+        self.btn_learn_legend.pack(fill="x", padx=20, pady=(4, 6))
 
-        self.btn_run = ctk.CTkButton(self.right_panel, text="KÍCH HOẠT BÓC TÁCH", height=50, corner_radius=8, font=("Montserrat Bold", 15, "bold"), fg_color=ACCENT_MAIN, hover_color=ACCENT_HOVER, text_color=BG_DARK, command=self.run_engine)
-        self.btn_run.pack(fill="x", padx=20, pady=(10, 20))
+        self.btn_run = ctk.CTkButton(
+            self.right_panel, text="RUN QUANTITY DETECTOR >>", height=46, corner_radius=4, 
+            font=("Consolas", 14, "bold"), fg_color=ACCENT_MAIN, 
+            hover_color=ACCENT_HOVER, text_color=BG_DARK, 
+            border_width=1, border_color="#E6A86E",
+            command=self.run_engine
+        )
+        self.btn_run.pack(fill="x", padx=20, pady=(8, 16))
 
-        ctk.CTkLabel(self.right_panel, text="LAYER MANAGER", font=("Montserrat Bold", 12, "bold"), text_color=TEXT_MUTED).pack(anchor="w", padx=20, pady=(0, 5))
+        ctk.CTkLabel(
+            self.right_panel, text="// ANNOTATION LAYER MANAGER", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
+        ).pack(anchor="w", padx=20, pady=(0, 6))
         
         self.master_switch_var = ctk.BooleanVar(value=True)
-        self.master_switch = ctk.CTkSwitch(self.right_panel, text="BẬT / TẮT TẤT CẢ", font=("Montserrat Bold", 12, "bold"), text_color=ACCENT_MAIN, progress_color=ACCENT_MAIN, variable=self.master_switch_var, command=self.toggle_all_layers)
+        self.master_switch = ctk.CTkSwitch(
+            self.right_panel, text="VISIBILITY ALL LAYERS", font=("Consolas", 11, "bold"), 
+            text_color=TEXT_MAIN, progress_color=ACCENT_MAIN, 
+            variable=self.master_switch_var, command=self.toggle_all_layers
+        )
         self.master_switch.pack(anchor="w", padx=20, pady=(0, 10))
 
-        self.layer_frame = ctk.CTkScrollableFrame(self.right_panel, fg_color=BG_DARK, height=360, corner_radius=8)
-        self.layer_frame.pack(fill="x", padx=20, pady=(0, 15))
+        self.layer_frame = ctk.CTkScrollableFrame(
+            self.right_panel, fg_color=BG_DARK, height=340, 
+            corner_radius=4, border_width=1, border_color=PANEL_BORDER
+        )
+        self.layer_frame.pack(fill="x", padx=20, pady=(0, 16))
 
-        ctk.CTkLabel(self.right_panel, text="TERMINAL LOG", font=("Montserrat Bold", 12, "bold"), text_color=TEXT_MUTED).pack(anchor="w", padx=20, pady=(0, 5))
-        self.txt_log = ctk.CTkTextbox(self.right_panel, fg_color=BG_DARK, text_color=TEXT_MAIN, font=("Consolas", 12), corner_radius=8, height=120)
+        ctk.CTkLabel(
+            self.right_panel, text="// TELEMETRY CLI LOG", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
+        ).pack(anchor="w", padx=20, pady=(0, 6))
+        
+        self.txt_log = ctk.CTkTextbox(
+            self.right_panel, fg_color=BG_DARK, text_color=TEXT_MAIN, 
+            font=("Consolas", 11), corner_radius=4, height=115,
+            border_width=1, border_color=PANEL_BORDER
+        )
         self.txt_log.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         self.txt_log.configure(state="disabled")
 
         self.txt_log._textbox.tag_configure("sys", foreground=TEXT_MUTED)
-        self.txt_log._textbox.tag_configure("success", foreground="#D5B07C")
+        self.txt_log._textbox.tag_configure("success", foreground="#34D399") # Green AI signal
         self.txt_log._textbox.tag_configure("error", foreground=CLOSE_BTN_HOVER)
         self.txt_log._textbox.tag_configure("action", foreground=ACCENT_MAIN)
 
-        # Trả Status Bar về sát đáy dưới cùng
-        self.statusbar = ctk.CTkFrame(self.center_frame, height=30, corner_radius=8, fg_color=PANEL_BG)
+        # Status Bar siêu gọn góc trái-phải
+        self.statusbar = ctk.CTkFrame(self.center_frame, height=28, corner_radius=4, fg_color=PANEL_BG)
         self.statusbar.pack(side="bottom", fill="x")
 
-        self.lbl_coords = ctk.CTkLabel(self.statusbar, text="X: 0.00 | Y: 0.00", font=("Consolas", 11), text_color=TEXT_MUTED)
-        self.lbl_coords.pack(side="left", padx=15)
+        self.lbl_coords = ctk.CTkLabel(self.statusbar, text="COORD // X: 0000 | Y: 0000", font=("Consolas", 11, "bold"), text_color=TEXT_MUTED)
+        self.lbl_coords.pack(side="left", padx=14)
 
-        self.lbl_zoom = ctk.CTkLabel(self.statusbar, text="Zoom: 200%", font=("Consolas", 11), text_color=TEXT_MUTED)
-        self.lbl_zoom.pack(side="right", padx=15)
+        self.lbl_zoom = ctk.CTkLabel(self.statusbar, text="ZOOM // 200%", font=("Consolas", 11, "bold"), text_color=TEXT_MUTED)
+        self.lbl_zoom.pack(side="right", padx=14)
 
-        self.log_to_terminal("PROMA Core Module Initialized (Ribbon UI).", "sys")
+        self.log_to_terminal("SCALE AI ANNOTATION ENGINE INITIALIZED.", "sys")
 
     # ==========================================
-    # KHU VỰC 3: TAB MANAGER & CHỌN MÀU LAYER
+    # KHU VỰC 3: LAYER MANAGER ROWS
     # ==========================================
     def add_layer_toggle_ui(self, ma_den, mau_sac, so_luong=0):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
 
         row = ctk.CTkFrame(self.layer_frame, fg_color="transparent")
-        row.pack(fill="x", pady=2)
+        row.pack(fill="x", pady=3)
         
-        # 🚀 CHỮA BỆNH ĐỔI MÀU: Dùng CTkButton thay vì CTkFrame để click đéo bao giờ trượt!
         color_box = ctk.CTkButton(
-            row, text="", width=18, height=18, corner_radius=3, 
+            row, text="", width=16, height=16, corner_radius=2, 
             fg_color=mau_sac, hover_color=mau_sac, cursor="hand2"
         )
-        color_box.pack(side="left", padx=(5, 5))
+        color_box.pack(side="left", padx=(6, 8))
         
         switch_var = ctk.BooleanVar(value=data["layer_visibility"].get(ma_den, True))
-        text_hien_thi = f"{ma_den}: {so_luong}"
+        text_hien_thi = f"{ma_den} [{so_luong:02d}]"
         switch = ctk.CTkSwitch(
-            row, text=text_hien_thi, font=("Montserrat Bold", 12, "bold"), 
+            row, text=text_hien_thi, font=("Consolas", 11, "bold"), 
             text_color=TEXT_MAIN, progress_color=mau_sac,
             variable=switch_var, command=lambda m=ma_den, v=switch_var: self.toggle_layer(m, v.get())
         )
@@ -266,33 +349,26 @@ class PromaEnterpriseApp(ctk.CTk):
 
         data["layer_switches"][ma_den] = switch
 
-        # Nút xóa ✖
         btn_delete = ctk.CTkButton(
-            row, text="✖", width=24, height=24, corner_radius=6, 
-            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#B3543E", font=("Montserrat Bold", 14),
+            row, text="×", width=20, height=20, corner_radius=4, 
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color=CLOSE_BTN_HOVER, font=("Consolas", 14, "bold"),
             command=lambda m=ma_den, r=row: self.delete_layer(m, r)
         )
-        btn_delete.pack(side="right", padx=(5, 5))
+        btn_delete.pack(side="right", padx=(4, 6))
 
-        # Thanh trượt Scale
         scale_val = data.setdefault("layer_scale", {}).setdefault(ma_den, 1.0)
         slider = ctk.CTkSlider(
-            row, width=70, height=12, from_=1.0, to=5.0, 
+            row, width=60, height=12, from_=1.0, to=5.0, 
             button_color=mau_sac, progress_color=mau_sac,
             command=lambda v, m=ma_den: self.change_layer_scale(m, v)
         )
         slider.set(scale_val)
-        slider.pack(side="right", padx=(5, 0))
+        slider.pack(side="right", padx=(4, 0))
 
-        # 🚀 GẮN LỆNH ĐỔI MÀU TRỰC TIẾP VÀO NÚT (ĐÉO DÙNG BIND NỮA)
         color_box.configure(command=lambda m=ma_den, cb=color_box, sw=switch, sl=slider: self.change_layer_color(m, cb, sw, sl))
-
-        # 🚀 GẮN BÙA DOUBLE-CLICK VÀO CHỮ TRÊN CÔNG TẮC ĐỂ RENAME LAYER
-        # Thằng CustomTkinter giấu Widget chữ ở biến _text_label bên trong
         switch._text_label.bind("<Double-Button-1>", lambda e, m=ma_den: self.rename_layer_action(m))
-        switch._text_label.configure(cursor="xterm") # Đổi con trỏ chuột thành hình chữ I cho người ta biết là sửa được
+        switch._text_label.configure(cursor="xterm")
 
-    # Nâng cấp hàm đổi màu để đổi luôn màu của thanh trượt
     def change_layer_color(self, ma_den, color_box, switch, slider=None):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
@@ -308,29 +384,13 @@ class PromaEnterpriseApp(ctk.CTk):
             self.log_to_terminal(f"Đã đổi màu mã {ma_den} sang {hex_color}", "sys")
             self.render_page(self.active_tab_name, redraw_pdf=False)
 
-    # 🚀 HÀM XỬ LÝ KHI KÉO THANH TRƯỢT
     def change_layer_scale(self, ma_den, value):
         if not self.active_tab_name: return
         self.tabs[self.active_tab_name]["layer_scale"][ma_den] = value
         
-        # Debounce: Cản lại không cho nó vẽ liên tục gây lag khi đang miết chuột
         if hasattr(self, 'scale_timer') and self.scale_timer:
             self.after_cancel(self.scale_timer)
         self.scale_timer = self.after(50, lambda: self.render_page(self.active_tab_name, redraw_pdf=False))
-
-    def change_layer_color(self, ma_den, color_box, switch):
-        if not self.active_tab_name: return
-        data = self.tabs[self.active_tab_name]
-        
-        mau_hien_tai = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
-        _, hex_color = askcolor(title=f"Đổi màu cho mã {ma_den}", initialcolor=mau_hien_tai)
-        
-        if hex_color: 
-            data["bang_mau_vat_the"][ma_den] = hex_color
-            color_box.configure(fg_color=hex_color)
-            switch.configure(progress_color=hex_color)
-            self.log_to_terminal(f"Đã đổi màu mã {ma_den} sang {hex_color}", "sys")
-            self.render_page(self.active_tab_name, redraw_pdf=False)
 
     def toggle_layer(self, ma_den, is_visible):
         if not self.active_tab_name: return
@@ -348,65 +408,51 @@ class PromaEnterpriseApp(ctk.CTk):
                 if trang_thai_tong: data["layer_switches"][ma_den].select()
                 else: data["layer_switches"][ma_den].deselect()
         self.render_page(self.active_tab_name, redraw_pdf=False)
-    # 🚀 HÀM MỚI: PHI TANG KÝ HIỆU RÁC KHỎI BỘ NHỚ VÀ BẢN VẼ
+
     def delete_layer(self, ma_den, row_widget):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # 1. Xóa sạch mọi thứ liên quan trong bộ nhớ não
         if ma_den in data["bang_mau_vat_the"]: del data["bang_mau_vat_the"][ma_den]
         if ma_den in data["layer_visibility"]: del data["layer_visibility"][ma_den]
         if ma_den in data["layer_switches"]: del data["layer_switches"][ma_den]
         if ma_den in data["layer_scale"]: del data["layer_scale"][ma_den]
         
-        # Xóa tọa độ đóng dấu trên trang hiện tại
         trang_idx = data["current_page"]
         if trang_idx in data.get("markers", {}) and ma_den in data["markers"][trang_idx]:
             del data["markers"][trang_idx][ma_den]
             
-        # 2. Hủy thi thể trên giao diện danh sách
         row_widget.destroy()
-        
-        # 3. Quét lại bản vẽ (Mất tích luôn trên màn hình)
         self.render_page(self.active_tab_name, redraw_pdf=False)
         self.log_to_terminal(f"Đã phi tang toàn bộ mã '{ma_den}' khỏi bản vẽ!", "error")
     
-    # ==========================================
-    # 🚀 HÀM MỚI: DOUBLE CLICK ĐỂ RENAME LAYER
-    # ==========================================
     def rename_layer_action(self, ma_cu):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # 1. Bật cửa sổ hỏi Tên mới
         dialog = ctk.CTkInputDialog(text=f"Đổi tên cho Layer [{ma_cu}]:", title="Rename Layer")
         ma_moi = dialog.get_input()
         
         if not ma_moi or ma_moi.strip() == "" or ma_moi.upper().strip() == ma_cu:
-            return # Hủy nếu bấm Cancel hoặc để trống hoặc gõ lại tên cũ
+            return 
             
         ma_moi = ma_moi.upper().strip()
         
-        # 2. Chặn lỗi trùng tên
         if ma_moi in data["bang_mau_vat_the"]:
             self.log_to_terminal(f"LỖI: Tên '{ma_moi}' đã tồn tại trên bản vẽ rồi sếp ơi!", "error")
             return
 
-        # 3. CHUYỂN GIAO TÀI SẢN TRONG NÃO AI (Màu, Trạng thái, Scale)
         data["bang_mau_vat_the"][ma_moi] = data["bang_mau_vat_the"].pop(ma_cu)
         data["layer_visibility"][ma_moi] = data["layer_visibility"].pop(ma_cu)
         if ma_cu in data["layer_scale"]:
             data["layer_scale"][ma_moi] = data["layer_scale"].pop(ma_cu)
 
-        # 4. CHUYỂN GIAO TỌA ĐỘ TRÊN TẤT CẢ CÁC TRANG PDF
         for trang_idx, markers_trang in data.get("markers", {}).items():
             if ma_cu in markers_trang:
                 markers_trang[ma_moi] = markers_trang.pop(ma_cu)
 
-        # 5. Xây lại danh sách UI cho chuẩn tên mới
         self.log_to_terminal(f"Đã rename Layer: [{ma_cu}] -> [{ma_moi}]", "success")
         
-        # Refresh lại toàn bộ Layer Manager và Canvas
         for child in self.layer_frame.winfo_children(): child.destroy()
         data["layer_switches"] = {}
         
@@ -427,13 +473,15 @@ class PromaEnterpriseApp(ctk.CTk):
         markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
         
         for ma_den, switch in data["layer_switches"].items():
-            switch.configure(text=f"{ma_den}: 0")
+            switch.configure(text=f"{ma_den} [00]")
             
         for ma_den, thong_tin in markers_trang_nay.items():
             if ma_den in data["layer_switches"]:
                 switch = data["layer_switches"][ma_den]
-                switch.configure(text=f"{ma_den}: {thong_tin['so_luong']}")
-
+                switch.configure(text=f"{ma_den} [{thong_tin['so_luong']:02d}]")
+# ==========================================
+    # KHU VỰC 3 (TIẾP THEO): QUẢN LÝ TAB BẢN VẼ
+    # ==========================================
     def add_new_tab(self, filepath):
         base_name = os.path.basename(filepath)
         tab_name = base_name
@@ -443,18 +491,21 @@ class PromaEnterpriseApp(ctk.CTk):
             tab_name = f"{base_name} ({count})"
             count += 1
 
-        tab_ui = ctk.CTkFrame(self.custom_tab_bar, fg_color=TAB_ACTIVE, corner_radius=8)
-        tab_ui.pack(side="left", padx=(0, 5), pady=2, fill="y") 
+        tab_ui = ctk.CTkFrame(
+            self.custom_tab_bar, fg_color=TAB_ACTIVE, 
+            corner_radius=4, border_width=1, border_color=PANEL_BORDER
+        )
+        tab_ui.pack(side="left", padx=(0, 6), pady=2, fill="y") 
 
-        lbl_name = ctk.CTkLabel(tab_ui, text=tab_name, font=("Montserrat Bold", 12, "bold"), text_color=TEXT_MAIN)
-        lbl_name.pack(side="left", padx=(15, 8), pady=5)
+        lbl_name = ctk.CTkLabel(tab_ui, text=tab_name, font=("Consolas", 11, "bold"), text_color=TEXT_MAIN)
+        lbl_name.pack(side="left", padx=(12, 8), pady=4)
         
         btn_close = ctk.CTkButton(
-            tab_ui, text="✖", width=24, height=24, corner_radius=6,
-            fg_color="transparent", hover_color=CLOSE_BTN_HOVER, text_color=TEXT_MUTED, font=("Montserrat Bold", 12),
+            tab_ui, text="×", width=20, height=20, corner_radius=4,
+            fg_color="transparent", hover_color=CLOSE_BTN_HOVER, text_color=TEXT_MUTED, font=("Consolas", 14, "bold"),
             command=lambda name=tab_name: self.close_specific_tab(name)
         )
-        btn_close.pack(side="right", padx=(0, 6), pady=5)
+        btn_close.pack(side="right", padx=(0, 6), pady=4)
 
         tab_ui.bind("<Button-1>", lambda e, name=tab_name: self.switch_to_tab(name))
         lbl_name.bind("<Button-1>", lambda e, name=tab_name: self.switch_to_tab(name))
@@ -492,7 +543,7 @@ class PromaEnterpriseApp(ctk.CTk):
             "current_img": None
         }
 
-        self.log_to_terminal(f"Opened layer: {tab_name}", "action")
+        self.log_to_terminal(f"Opened annotation tab: {tab_name}", "action")
         self.switch_to_tab(tab_name)
         self.show_idle_touchbar()
 
@@ -512,15 +563,14 @@ class PromaEnterpriseApp(ctk.CTk):
 
         for name, tab_data in self.tabs.items():
             if name == target_name:
-                tab_data["tab_ui"].configure(fg_color=TAB_ACTIVE)
+                tab_data["tab_ui"].configure(fg_color=TAB_ACTIVE, border_color="#B07D4C")
                 tab_data["lbl_name"].configure(text_color=TEXT_MAIN)
                 tab_data["canvas_container"].pack(fill="both", expand=True)
                 
-                # Cập nhật Text
                 self.lbl_page.configure(text=f"{tab_data['current_page'] + 1:02d} / {tab_data['pdf_doc'].page_count:02d}")
-                self.lbl_zoom.configure(text=f"Zoom: {int(tab_data['zoom_level'] * 100)}%")
+                self.lbl_zoom.configure(text=f"ZOOM // {int(tab_data['zoom_level'] * 100)}%")
 
-                # 🚀 CẬP NHẬT TRẠNG THÁI NÚT MONO THEO TAB HIỆN TẠI
+                # Đồng bộ trạng thái nút MONO
                 if tab_data.get("is_monochrome", False):
                     self.btn_mono.configure(fg_color=ACCENT_MAIN, text_color=BG_DARK)
                 else:
@@ -533,9 +583,7 @@ class PromaEnterpriseApp(ctk.CTk):
 
                 self.render_page(name)
             else:
-                # 🚀 LỆNH THẦN THÁNH BỊ XÓA NHẦM NAY ĐÃ TRỞ LẠI!
-                # Ẩn sạch các tab không dùng tới để không bị đè hình, kẹt trang!
-                tab_data["tab_ui"].configure(fg_color=TAB_INACTIVE)
+                tab_data["tab_ui"].configure(fg_color=TAB_INACTIVE, border_color=PANEL_BORDER)
                 tab_data["lbl_name"].configure(text_color=TEXT_MUTED)
                 tab_data["canvas_container"].pack_forget()
 
@@ -554,7 +602,7 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.tabs:
             self.active_tab_name = None
             self.lbl_page.configure(text="00 / 00")
-            self.lbl_zoom.configure(text="Zoom: 200%")
+            self.lbl_zoom.configure(text="ZOOM // 200%")
             
             for child in self.layer_frame.winfo_children(): child.destroy()
 
@@ -566,9 +614,7 @@ class PromaEnterpriseApp(ctk.CTk):
         pos_x, pos_y = data["img_pos"]
         zoom = data["zoom_level"]
 
-        # ==========================================
-        # 1. RENDER NỀN PDF & CẬP NHẬT SỐ LƯỢNG LAYER
-        # ==========================================
+        # 1. RENDER NỀN PDF & CẬP NHẬT LAYER COUNTS
         if redraw_pdf:
             page = data["pdf_doc"].load_page(data["current_page"])
             mat = fitz.Matrix(zoom, zoom)
@@ -576,7 +622,7 @@ class PromaEnterpriseApp(ctk.CTk):
             
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
-            # 🚀 LỌC MONOCHROME: BIẾN NỀN BẢN VẼ THÀNH GRAYSCALE SIÊU NÉT
+            # LỌC MONOCHROME: CHUYỂN NỀN SANG GRAYSCALE SIÊU SẠCH
             if data.get("is_monochrome", False):
                 img = img.convert("L").convert("RGB")
 
@@ -586,9 +632,7 @@ class PromaEnterpriseApp(ctk.CTk):
             canvas.create_image(pos_x, pos_y, anchor="nw", image=data["current_img"], tags=("pdf_img", "pdf_background"))
             self.update_layer_manager_counts()
 
-        # ==========================================
-        # 2. VẼ CÁC Ô VUÔNG MARKER (THUẬT TOÁN TÂM ĐIỂM TUYỆT ĐỐI)
-        # ==========================================
+        # 2. VẼ MARKERS (THUẬT TOÁN TÂM ĐIỂM TUYỆT ĐỐI)
         canvas.delete("marker") 
         trang_idx = data["current_page"]
         markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
@@ -605,7 +649,6 @@ class PromaEnterpriseApp(ctk.CTk):
                 x1 = pos_x + box[2] * zoom
                 y1 = pos_y + box[3] * zoom
                 
-                # Tính tâm ô nhấp chuột / vùng bóc tách
                 cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
                 canh_vuong = 15.0 * zoom * scale
                 
@@ -619,14 +662,11 @@ class PromaEnterpriseApp(ctk.CTk):
                     outline=mau_sac, width=3, tags=("pdf_img", "marker")
                 )
 
-        # ==========================================
-        # 3. VẼ BẢNG CHÚ THÍCH TỔNG HỢP (TABLE LEGEND) & NÚT RESIZE
-        # ==========================================
+        # 3. VẼ BẢNG CHÚ THÍCH (SCALE AI TECHNICAL LEGEND TABLE) & NÚT RESIZE
         canvas.delete("table_legend")
         if "tables" in data and trang_idx in data["tables"]:
             tb = data["tables"][trang_idx]
             
-            # Tự động nắn cấu trúc nếu bảng cũ lỡ lưu dạng list [x, y]
             if isinstance(tb, list):
                 tb = {"x": tb[0], "y": tb[1], "scale": 1.0}
                 data["tables"][trang_idx] = tb
@@ -640,58 +680,53 @@ class PromaEnterpriseApp(ctk.CTk):
             danh_sach_ma = sorted(data["bang_mau_vat_the"].keys())
             h_table = max((len(danh_sach_ma) + 1.8) * row_h, 60 * zoom * t_scale)
             
-            # A. Khung nền xám đen nhám chuẩn CAD
+            # Khung nền Obsidian Zinc chuẩn Scale AI
             canvas.create_rectangle(
                 tx, ty, tx + w_table, ty + h_table, 
-                fill="#1C1C1E", outline="#B07D4C", width=2, tags=("pdf_img", "table_legend")
+                fill="#09090B", outline="#B07D4C", width=2, tags=("pdf_img", "table_legend")
             )
             
-            # B. Tiêu đề bảng
             canvas.create_text(
                 tx + w_table / 2, ty + row_h * 0.7, 
-                text="TAKEOFF LEGEND / TỔNG HỢP", 
-                fill="#F5F5DC", font=("Montserrat Bold", int(10 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
+                text="TAKEOFF LEGEND // ANNOTATIONS", 
+                fill="#FAFAFA", font=("Consolas", int(11 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
             )
             canvas.create_line(
                 tx, ty + row_h * 1.3, tx + w_table, ty + row_h * 1.3, 
-                fill="#33261D", width=1, tags=("pdf_img", "table_legend")
+                fill="#27272A", width=1, tags=("pdf_img", "table_legend")
             )
             
-            # C. Từng dòng chi tiết: [Ô MÀU] - [MÃ] - [SỐ LƯỢNG]
             for idx, ma_den in enumerate(danh_sach_ma):
                 y_row = ty + (idx + 1.9) * row_h
                 mau_sac = data["bang_mau_vat_the"][ma_den]
                 so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
                 
-                # Ô màu tượng trưng
                 canvas.create_rectangle(
                     tx + 12 * zoom * t_scale, y_row - 6 * zoom * t_scale, 
                     tx + 24 * zoom * t_scale, y_row + 6 * zoom * t_scale,
-                    fill=mau_sac, outline="#FFFFFF", width=1, tags=("pdf_img", "table_legend")
+                    fill=mau_sac, outline="#FAFAFA", width=1, tags=("pdf_img", "table_legend")
                 )
                 
-                # Tên mã layer
                 canvas.create_text(
                     tx + 34 * zoom * t_scale, y_row, text=str(ma_den), anchor="w",
-                    fill="#F5F5DC", font=("Consolas", int(11 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
+                    fill="#FAFAFA", font=("Consolas", int(11 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
                 )
                 
-                # Số lượng đếm được
                 canvas.create_text(
                     tx + w_table - 15 * zoom * t_scale, y_row, text=f"{so_l:02d}", anchor="e",
-                    fill="#D5B07C", font=("Consolas", int(12 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
+                    fill="#B07D4C", font=("Consolas", int(12 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
                 )
 
-            # D. Nút nắm góc dưới-phải chuẩn Canva (Resize Handle)
+            # Nút nắm góc dưới-phải (Precision handle)
             hx, hy = tx + w_table, ty + h_table
             hw = 10 * zoom
             canvas.create_rectangle(
                 hx - hw, hy - hw, hx, hy,
-                fill="#D5B07C", outline="#FFFFFF", width=1, tags=("pdf_img", "table_legend")
+                fill="#B07D4C", outline="#FAFAFA", width=1, tags=("pdf_img", "table_legend")
             )
             canvas.create_line(
                 hx - hw + 3, hy - 3, hx - 3, hy - hw + 3, 
-                fill="#120C08", width=1.5, tags=("pdf_img", "table_legend")
+                fill="#09090B", width=1.5, tags=("pdf_img", "table_legend")
             )
 
     # ==========================================
@@ -710,7 +745,7 @@ class PromaEnterpriseApp(ctk.CTk):
         now = time.time()
         if not hasattr(self, 'last_mouse_update'): self.last_mouse_update = 0
         if now - self.last_mouse_update > 0.05:
-            self.lbl_coords.configure(text=f"X: {event.x:04d} | Y: {event.y:04d}")
+            self.lbl_coords.configure(text=f"COORD // X: {event.x:04d} | Y: {event.y:04d}")
             self.last_mouse_update = now
 
     def on_drag_start(self, event):
@@ -722,11 +757,8 @@ class PromaEnterpriseApp(ctk.CTk):
         py = (event.y - pos_y) / zoom
         trang = data["current_page"]
         
-        # ==========================================
-        # 🚀 ƯU TIÊN 1: CHẾ ĐỘ TẨY (ERASE) - CẦM TẨY LÀ XÓA TẤT CẢ BẰNG CHUỘT TRÁI!
-        # ==========================================
+        # 🚀 ƯU TIÊN 1: CHẾ ĐỘ TẨY (ERASE)
         if getattr(self, "current_action", None) == "ERASE":
-            # A. Kiểm tra có nhấp chuột trái trúng BẢNG CHÚ THÍCH không -> XÓA BẢNG NGAY!
             if "tables" in data and trang in data["tables"]:
                 tb = data["tables"][trang]
                 tx = tb["x"] if isinstance(tb, dict) else tb[0]
@@ -741,9 +773,8 @@ class PromaEnterpriseApp(ctk.CTk):
                     del data["tables"][trang]
                     self.log_to_terminal("🗑️ Đã dùng Tẩy xóa Bảng chú thích bằng Chuột Trái!", "error")
                     self.render_page(self.active_tab_name, redraw_pdf=False)
-                    return # Xóa bảng xong nghỉ, đéo làm gì nữa
+                    return 
 
-            # B. Nếu không trúng Bảng -> Quét xem có trúng KÝ HIỆU MARKER nào không -> XÓA KÝ HIỆU!
             markers_trang_nay = data.get("markers", {}).get(trang, {})
             for ma_den, thong_tin in markers_trang_nay.items():
                 if not data["layer_visibility"].get(ma_den, True): continue
@@ -755,11 +786,9 @@ class PromaEnterpriseApp(ctk.CTk):
                         self.update_layer_manager_counts()
                         self.render_page(self.active_tab_name, redraw_pdf=False)
                         return
-            return # Đang cầm Tẩy thì cấm tiệt các lệnh bên dưới
+            return 
 
-        # ==========================================
-        # 🚀 ƯU TIÊN 2: CHẾ ĐỘ TABLE - CLICK TRÁI LÀ ĐẶT BẢNG XUỐNG
-        # ==========================================
+        # 🚀 ƯU TIÊN 2: CHẾ ĐỘ TABLE
         if getattr(self, "current_action", None) == "TABLE":
             if "tables" not in data: data["tables"] = {}
             data["tables"][trang] = {"x": px, "y": py, "scale": 1.0}
@@ -767,9 +796,7 @@ class PromaEnterpriseApp(ctk.CTk):
             self.log_to_terminal("📌 Đã ghim Bảng! Kéo góc dưới-phải để Phóng to/Thu nhỏ.", "success")
             return
 
-        # ==========================================
-        # 🚀 ƯU TIÊN 3: CHẾ ĐỘ MARK - CHẤM ĐIỂM
-        # ==========================================
+        # 🚀 ƯU TIÊN 3: CHẾ ĐỘ MARK
         if getattr(self, "current_action", None) == "MARK":
             box = [px - 10, py - 10, px + 10, py + 10]
             ma_den = self.current_mark_layer
@@ -779,9 +806,7 @@ class PromaEnterpriseApp(ctk.CTk):
             self.render_page(self.active_tab_name, redraw_pdf=False)
             return 
             
-        # ==========================================
-        # 🚀 ƯU TIÊN 4: CHUỘT THƯỜNG - KÉO DỜI VỊ TRÍ HOẶC PHÓNG TO BẢNG
-        # ==========================================
+        # 🚀 ƯU TIÊN 4: CHUỘT THƯỜNG - RESIZE HOẶC KÉO BẢNG
         if getattr(self, "current_action", None) is None:
             if "tables" in data and trang in data["tables"]:
                 tb = data["tables"][trang]
@@ -793,22 +818,18 @@ class PromaEnterpriseApp(ctk.CTk):
                 w_tb = 230 * t_scale
                 h_tb = max((so_hang + 1.8) * 24 * t_scale, 60 * t_scale)
                 
-                # Click trúng góc vàng dưới-phải -> Resize Bảng
                 if (tx + w_tb - 25) <= px <= (tx + w_tb + 15) and (ty + h_tb - 25) <= py <= (ty + h_tb + 15):
                     data["resizing_table"] = True
                     data["resize_start_tx"] = tx
                     self.log_to_terminal("🔍 Đang kéo đổi kích thước Bảng...", "sys")
                     return
                     
-                # Click trúng giữa Bảng -> Kéo dời Bảng
                 if tx <= px <= tx + w_tb and ty <= py <= ty + h_tb:
                     data["dragging_table"] = True
                     data["drag_table_offset"] = [px - tx, py - ty]
                     return
 
-        # ==========================================
-        # 🚀 ƯU TIÊN 5: KÉO CHỌN VÙNG BÓC TÁCH HOẶC KÉO BẢN VẼ
-        # ==========================================
+        # 🚀 ƯU TIÊN 5: KÉO CHỌN VÙNG HOẶC PAN BẢN VẼ
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
             data["canvas"].config(cursor="crosshair")
             data["drag_data"]["start_x"] = event.x
@@ -829,20 +850,19 @@ class PromaEnterpriseApp(ctk.CTk):
         
         if getattr(self, "current_action", None) in ["MARK", "ERASE", "TABLE"]: return
         
-        # 🚀 A. KÉO GÓC VÀNG -> RESIZE CHUẨN 1:1 THEO VỊ TRÍ CHUỘT
+        # RESIZE 1:1 THEO CHUỘT
         if data.get("resizing_table", False):
             pos_x, pos_y = data["img_pos"]
             zoom = data["zoom_level"]
             px = (event.x - pos_x) / zoom
             tx = data["resize_start_tx"]
             
-            # Công thức 1:1 -> Chiều rộng mới bằng chính khoảng cách từ cạnh trái (tx) tới đầu chuột (px)
             new_scale = max(0.4, min(4.0, (px - tx) / 230.0))
             data["tables"][data["current_page"]]["scale"] = new_scale
             self.render_page(self.active_tab_name, redraw_pdf=False)
             return
 
-        # 🚀 B. KÉO GIỮA BẢNG -> DI CHUYỂN BẢN VẼ KHẮP NƠI CỰC MƯỢT
+        # DI CHUYỂN BẢNG
         if data.get("dragging_table", False):
             pos_x, pos_y = data["img_pos"]
             zoom = data["zoom_level"]
@@ -870,7 +890,6 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # 🚀 TRỊ BỆNH KẸT LỆNH: Thả chuột ra là chốt hạ di chuyển & resize bảng
         data["dragging_table"] = False
         data["resizing_table"] = False
         
@@ -912,7 +931,7 @@ class PromaEnterpriseApp(ctk.CTk):
     def on_middle_drag_start(self, event):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
-        data["canvas"].config(cursor="fleur") # Biến thành bàn tay 4 hướng
+        data["canvas"].config(cursor="fleur") 
         data["drag_data"]["mid_x"] = event.x
         data["drag_data"]["mid_y"] = event.y
 
@@ -929,22 +948,18 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # Trả lại trỏ chuột tùy theo việc sếp đang cầm súng hay đang chọn vùng
         if getattr(self, "current_action", None) == "MARK" or (hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng"):
             data["canvas"].config(cursor="crosshair")
         else:
             data["canvas"].config(cursor="")
 
     # ==========================================
-    # 🚀 BÚA TẨY CHUỘT PHẢI THẦN THÁNH (RIGHT-CLICK ERASER)
-    # ==========================================
-    # ==========================================
     # 🚀 BÚA TẨY CHUỘT PHẢI (RIGHT-CLICK ERASER / UNDO)
     # ==========================================
     def on_right_click(self, event):
         if not self.active_tab_name: return
         
-        # 1. Đang cầm súng Mark -> Nhấp chuột phải là Undo điểm vừa chấm
+        # 1. Đang cầm súng Mark -> Nhấp phải là Undo điểm vừa chấm
         if getattr(self, "current_action", None) == "MARK":
             self.undo_manual_mark()
             return
@@ -952,7 +967,7 @@ class PromaEnterpriseApp(ctk.CTk):
         data = self.tabs[self.active_tab_name]
         trang = data["current_page"]
 
-        # 2. 🚀 CHỈ KHI ĐANG Ở CHẾ ĐỘ "TABLE" THÌ NHẤP CHUỘT PHẢI MỚI XÓA BẢNG!
+        # 2. CHỈ KHI Ở CHẾ ĐỘ "TABLE" THÌ NHẤP CHUỘT PHẢI MỚI XÓA BẢNG
         if getattr(self, "current_action", None) == "TABLE":
             if "tables" in data and trang in data["tables"]:
                 del data["tables"][trang]
@@ -960,11 +975,11 @@ class PromaEnterpriseApp(ctk.CTk):
                 self.render_page(self.active_tab_name, redraw_pdf=False)
             return
 
-        # 3. Đang cầm Tẩy (ERASE) -> Không làm gì hết (Tẩy chỉ xài chuột trái!)
+        # 3. Đang cầm Tẩy (ERASE) -> Tẩy chỉ xài chuột trái
         if getattr(self, "current_action", None) == "ERASE":
             return
 
-        # 4. CHẾ ĐỘ BÌNH THƯỜNG (CHUỘT THƯỜNG) -> NHẤP PHẢI TRÚNG KÝ HIỆU LÀ XÓA KÝ HIỆU
+        # 4. CHUỘT THƯỜNG -> NHẤP PHẢI TRÚNG KÝ HIỆU LÀ XÓA KÝ HIỆU
         pos_x, pos_y = data["img_pos"]
         zoom = data["zoom_level"]
         px = (event.x - pos_x) / zoom
@@ -998,7 +1013,7 @@ class PromaEnterpriseApp(ctk.CTk):
         mx, my = event.x, event.y
         
         data["img_pos"] = [mx - (mx - img_x) * zoom_factor, my - (my - img_y) * zoom_factor]
-        self.lbl_zoom.configure(text=f"Zoom: {int(data['zoom_level'] * 100)}%")
+        self.lbl_zoom.configure(text=f"ZOOM // {int(data['zoom_level'] * 100)}%")
 
         if self.zoom_timer: self.after_cancel(self.zoom_timer)
         self.zoom_timer = self.after(150, lambda n=self.active_tab_name: self.render_page(n, redraw_pdf=True))
@@ -1021,11 +1036,10 @@ class PromaEnterpriseApp(ctk.CTk):
 
     def log_to_terminal(self, text, tag="sys"):
         self.txt_log.configure(state="normal")
-        self.txt_log._textbox.insert("end", f"> {text}\n", tag)
+        self.txt_log._textbox.insert("end", f">> {text}\n", tag)
         self.txt_log._textbox.see("end")
         self.txt_log.configure(state="disabled")
 
-    # ==========================================
     # ==========================================
     # KHU VỰC 5: KÍCH HOẠT ĐỘNG CƠ BACKEND (PDF) CÓ KHOANH VÙNG
     # ==========================================
@@ -1039,46 +1053,41 @@ class PromaEnterpriseApp(ctk.CTk):
         duong_dan_file = data_tab["pdf_doc"].name
         trang_hien_tai = data_tab["current_page"]
         
-        self.log_to_terminal(f"Khởi chạy module [{mode}] trên layer [{self.active_tab_name}]...", "action")
-        self.btn_run.configure(state="disabled", text="ĐANG BÓC TÁCH...")
+        self.log_to_terminal(f"RUNNING MODEL [{mode}] ON ANNOTATION LAYER [{self.active_tab_name}]...", "action")
+        self.btn_run.configure(state="disabled", text="PROCESSING DETECTION...")
         
-        # 🚀 BẮT TỌA ĐỘ VÙNG CHỌN (NẾU CÓ)
         vung = None
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
             vung = data_tab.get("vung_chon_pdf")
             if not vung:
-                self.log_to_terminal("CẢNH BÁO: Đang ở chế độ Kéo chọn vùng nhưng sếp chưa khoanh! Máy sẽ quét toàn bản vẽ.", "sys")
+                self.log_to_terminal("WARN: Chưa vẽ box vùng chọn! Detector sẽ xử lý toàn trang.", "sys")
         
-        # Tránh lỗi mất biến não AI
         chu_ky = getattr(self, 'chu_ky_ai', {})
         
-        # 🚀 GỌI LUỒNG NGẦM & Ném 5 tham số đi (duong_dan, trang, mode, chu_ky, vung)
-        import threading
         threading.Thread(
             target=self._thread_run_engine, 
             args=(duong_dan_file, trang_hien_tai, mode, chu_ky, vung),
             daemon=True
         ).start()
 
-    # 🚀 Hàm này nhận đủ 5 tham số để chốt đơn với Backend
     def _thread_run_engine(self, filepath, page_idx, mode, chu_ky, vung_chon):
         from logic.api_handler import goi_backend_boc_tach
         thanh_cong, ket_qua = goi_backend_boc_tach(filepath, page_idx, mode, chu_ky, vung_chon)
         self.after(0, self._hoan_thanh_run, thanh_cong, ket_qua)
         
     def _hoan_thanh_run(self, thanh_cong, ket_qua):
-        self.btn_run.configure(state="normal", text="KÍCH HOẠT BÓC TÁCH")
+        self.btn_run.configure(state="normal", text="RUN QUANTITY DETECTOR >>")
         if not self.active_tab_name: return
         data_tab = self.tabs[self.active_tab_name]
         
         if thanh_cong:
             data_dem = ket_qua.get("data", {})
             if data_dem:
-                self.log_to_terminal("Đã hoàn tất đếm. Đang đồng bộ tọa độ xoay...", "success")
+                self.log_to_terminal("ANNOTATION SYMBOLS DETECTED. Aligning orientation matrix...", "success")
                 if "markers" not in data_tab: data_tab["markers"] = {}
                 trang_hien_tai = data_tab["current_page"]
                 
-                # 🚀 THUẬT TOÁN ĐỒNG BỘ GÓC XOAY: Nắn tọa độ AI từ file gốc theo góc xoay hiện tại của màn hình
+                # NẮN TỌA ĐỘ AI THEO GÓC XOAY HIỆN TẠI
                 page = data_tab["pdf_doc"].load_page(trang_hien_tai)
                 goc_xoay = page.rotation
                 
@@ -1090,7 +1099,6 @@ class PromaEnterpriseApp(ctk.CTk):
                         toa_do_da_xoay = []
                         for box in thong_tin["toa_do"]:
                             x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
-                            # Xoay tương ứng với góc 90, 180, 270 độ
                             if goc_xoay == 90:
                                 nx0, ny0, nx1, ny1 = h_goc - y1, x0, h_goc - y0, x1
                             elif goc_xoay == 180:
@@ -1113,26 +1121,19 @@ class PromaEnterpriseApp(ctk.CTk):
                 
                 self.switch_to_tab(self.active_tab_name)
             else:
-                self.log_to_terminal("Không tìm thấy vật thể nào trong vùng này!", "sys")
+                self.log_to_terminal("No target bounding boxes identified in target area.", "sys")
         else:
-            self.log_to_terminal(f"LỖI HỆ THỐNG: {ket_qua}", "error")
+            self.log_to_terminal(f"SYSTEM DETECTOR EXCEPTION: {ket_qua}", "error")
 
-    # 🚀 KIẾN TRÚC MỚI: MỞ RỘNG TOUCH BAR KHI BẤM INSERT
     # ==========================================
-    # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (APPLE MUSIC IDLE STYLE)
-    # ==========================================
-    # ==========================================
-    # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (LOGO PNG MINI CHÍNH GIỮA)
-    # ==========================================
-    # ==========================================
-    # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (LOGO PNG XÁM MỜ CHÍNH GIỮA)
+    # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (SCALE AI TECHNICAL HUD IDLE)
     # ==========================================
     def show_idle_touchbar(self):
         for widget in self.touch_bar.winfo_children(): widget.destroy()
         self.current_action = None
         self.is_insert_menu_open = False
         
-        # 🚀 BÊ PNG GỐC VÀ NHUỘM SANG MÀU XÁM MỜ (MUTED GREY/SILVER) SIÊU SANG CHẢNH
+        # BÊ PNG GỐC VÀ NHUỘM SANG MÀU NÂU VÀNG PROMA CHÌM TRÊN NỀN OBSIDIAN
         if not hasattr(self, 'touchbar_logo_img') or self.touchbar_logo_img is None:
             try:
                 thu_muc_hien_tai = os.path.dirname(os.path.abspath(__file__))
@@ -1142,22 +1143,19 @@ class PromaEnterpriseApp(ctk.CTk):
                 img_goc = Image.open(logo_filename).convert("RGBA")
                 w_goc, h_goc = img_goc.size
                 
-                # 1. Scale nhỏ về chiều cao 22px cho khít Touch Bar
-                w_mini = int(w_goc * (22 / h_goc))
-                img_resized = img_goc.resize((w_mini, 22), Image.Resampling.LANCZOS)
+                w_mini = int(w_goc * (20 / h_goc))
+                img_resized = img_goc.resize((w_mini, 20), Image.Resampling.LANCZOS)
                 
-                # 2. THUẬT TOÁN NHUỘM MÀU XÁM MỜ (#8A7969 - chuẩn tone TEXT_MUTED của app):
-                # Tạo 1 tấm ảnh màu xám mờ hoàn toàn, sau đó dùng chính kênh Alpha của Logo gốc làm mặt nạ (Mask)
-                img_tinted = Image.new("RGBA", (w_mini, 22), (90, 80, 70, 255))
-                img_final = Image.new("RGBA", (w_mini, 22), (0, 0, 0, 0))
-                img_final.paste(img_tinted, (0, 0), mask=img_resized.split()[3]) # Chỉ lấy vùng có hình gốc
+                # Nhuộm nâu vàng Proma ấm sắc nét (#B07D4C với Alpha 170)
+                img_tinted = Image.new("RGBA", (w_mini, 20), (176, 125, 76, 170))
+                img_final = Image.new("RGBA", (w_mini, 20), (0, 0, 0, 0))
+                img_final.paste(img_tinted, (0, 0), mask=img_resized.split()[3]) 
                 
-                self.touchbar_logo_img = ctk.CTkImage(light_image=img_final, dark_image=img_final, size=(w_mini, 22))
+                self.touchbar_logo_img = ctk.CTkImage(light_image=img_final, dark_image=img_final, size=(w_mini, 20))
             except Exception as e:
                 self.log_to_terminal(f"Lỗi load logo Touch Bar: {e}", "error")
                 return
         
-        # 🚀 GHIM LOGO XÁM MỜ NẰM CHỄM CHỆ NGAY GIỮA THANH TOUCH BAR
         if self.touchbar_logo_img:
             ctk.CTkLabel(self.touch_bar, text="", image=self.touchbar_logo_img).pack(expand=True)
         
@@ -1166,56 +1164,54 @@ class PromaEnterpriseApp(ctk.CTk):
             self.log_to_terminal("Sếp phải mở bản vẽ ra mới xài Insert được chứ!", "error")
             return
             
-        # 🚀 TÍNH NĂNG TOGGLE: Đang mở Insert thì bấm phát nữa sẽ tắt về trạng thái Logo Idle
+        # TOGGLE: Đang mở Insert thì bấm phát nữa sẽ tắt về trạng thái Logo Idle
         if getattr(self, "is_insert_menu_open", False):
             self.show_idle_touchbar()
-            self.log_to_terminal("Đã thu gọn thanh Touch Bar.", "sys")
+            self.log_to_terminal("HUD menu closed.", "sys")
             return
 
-        # Nếu đang tắt thì bật Menu Insert lên
         self.is_insert_menu_open = True
         for widget in self.touch_bar.winfo_children(): widget.destroy()
         self.current_action = None
 
-        # --- NÚT 1: MARK ---
+        # --- NÚT 1: MARK (PRECISION ENGINEERING TOOL 4PX) ---
         btn_mark = ctk.CTkButton(
-            self.touch_bar, text="Mark", width=70, height=28, corner_radius=6, 
-            fg_color="#D5B07C", text_color=BG_DARK, hover_color="#C49A6C", font=("Arial", 12, "bold"), 
+            self.touch_bar, text="[ MARK ]", width=74, height=24, corner_radius=4, 
+            fg_color="#D5B07C", text_color=BG_DARK, hover_color="#C49A6C", 
+            font=("Consolas", 11, "bold"), border_width=1, border_color="#E8C695",
             command=self.start_manual_mark
         )
-        btn_mark.pack(side="left", padx=(15, 5), pady=4)
+        btn_mark.pack(side="left", padx=(14, 4), pady=4)
 
         # --- NÚT 2: ERASE ---
         btn_erase = ctk.CTkButton(
-            self.touch_bar, text="Erase", width=70, height=28, corner_radius=6, 
-            fg_color="#B3543E", text_color="#FFFFFF", hover_color="#8F3C29", font=("Arial", 12, "bold"), 
+            self.touch_bar, text="[ ERASE ]", width=74, height=24, corner_radius=4, 
+            fg_color="#EF4444", text_color="#FFFFFF", hover_color="#DC2626", 
+            font=("Consolas", 11, "bold"), border_width=1, border_color="#F87171",
             command=self.start_erase_mode
         )
-        btn_erase.pack(side="left", padx=5, pady=4)
+        btn_erase.pack(side="left", padx=4, pady=4)
 
         # --- NÚT 3: TABLE ---
         btn_table = ctk.CTkButton(
-            self.touch_bar, text="Table", width=70, height=28, corner_radius=6, 
-            fg_color="#2A9D8F", text_color="#FFFFFF", hover_color="#218277", font=("Arial", 12, "bold"), 
+            self.touch_bar, text="[ TABLE ]", width=74, height=24, corner_radius=4, 
+            fg_color="#10B981", text_color="#09090B", hover_color="#34D399", 
+            font=("Consolas", 11, "bold"), border_width=1, border_color="#6EE7B7",
             command=self.start_table_mode
         )
-        btn_table.pack(side="left", padx=5, pady=4)
-
-        # 🚀 ĐÃ XÓA SẠCH NÚT ✖ Ở BÊN TAY PHẢI THEO LỆNH SẾP!
+        btn_table.pack(side="left", padx=4, pady=4)
 
     # ==========================================
     # 🚀 TÍNH NĂNG INSERT: MARK THỦ CÔNG & TẤY (ERASE)
     # ==========================================
-
-    # --- 1. KÍCH HOẠT CHẤM MARK ---
     def start_manual_mark(self):
         if not self.active_tab_name: return
         
-        dialog = ctk.CTkInputDialog(text="Nhập tên Ký hiệu (VD: MARK-01):", title="Tạo Layer Mark")
+        dialog = ctk.CTkInputDialog(text="Nhập mã Annotation Layer (VD: MARK-01):", title="New Annotation Layer")
         layer_name = dialog.get_input()
         
         if not layer_name: 
-            self.log_to_terminal("Đã hủy chấm điểm thủ công.", "sys")
+            self.log_to_terminal("Manual annotation aborted.", "sys")
             return
             
         layer_name = layer_name.upper().strip()
@@ -1239,20 +1235,18 @@ class PromaEnterpriseApp(ctk.CTk):
         self.current_mark_layer = layer_name
         data["canvas"].config(cursor="crosshair") 
 
-        # 🚀 DỌN SẠCH TOUCH BAR - CHỈ HIỆN ĐÚNG STATUS SIÊU GỌN
         for widget in self.touch_bar.winfo_children(): widget.destroy()
 
         ctk.CTkLabel(
-            self.touch_bar, text=f"MARKING: [ {layer_name} ]", 
-            font=("Consolas", 13, "bold"), text_color=ACCENT_MAIN
-        ).pack(side="left", padx=20)
+            self.touch_bar, text=f"// MARKING ACTIVE: [ {layer_name} ]", 
+            font=("Consolas", 11, "bold"), text_color=ACCENT_MAIN
+        ).pack(side="left", padx=16)
         
         ctk.CTkLabel(
-            self.touch_bar, text="Ctrl+Z: Undo  |  Enter / ESC: Chốt sổ", 
-            font=("Consolas", 11, "italic"), text_color=TEXT_MUTED
+            self.touch_bar, text="CTRL+Z: Undo  |  ENTER / ESC: Complete", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
         ).pack(side="left", padx=10)
 
-        # 🚀 TRÓI CHẶT PHÍM ENTER VÀ ESC VÀO TOÀN APP
         self.bind("<Control-z>", self.undo_manual_mark)
         self.bind("<Return>", self.finish_manual_mark)
         self.bind("<Escape>", self.finish_manual_mark)
@@ -1260,9 +1254,8 @@ class PromaEnterpriseApp(ctk.CTk):
         data["canvas"].bind("<Escape>", self.finish_manual_mark)
         
         data["canvas"].focus_set()
-        self.log_to_terminal(f"Đã lên đạn mã {layer_name}. Gõ Enter hoặc ESC để thu súng!", "action")
+        self.log_to_terminal(f"Annotation gun armed for layer '{layer_name}'. Press ENTER to commit.", "action")
 
-    # --- 2. UNDO ĐIỂM CHẤM GẦN NHẤT (CTRL+Z) ---
     def undo_manual_mark(self, event=None):
         if getattr(self, "current_action", None) != "MARK": return
         data = self.tabs.get(self.active_tab_name)
@@ -1277,9 +1270,8 @@ class PromaEnterpriseApp(ctk.CTk):
             thong_tin["so_luong"] -= 1
             self.update_layer_manager_counts()
             self.render_page(self.active_tab_name, redraw_pdf=False)
-            self.log_to_terminal(f"↩ Đã Undo 1 điểm chấm của {ma_den}.", "sys")
+            self.log_to_terminal(f"↩ Annotation coordinate removed from '{ma_den}'.", "sys")
 
-    # --- 3. CHỐT SỔ MARK ---
     def finish_manual_mark(self, event=None):
         self.current_action = None
         self.current_mark_layer = None
@@ -1292,29 +1284,26 @@ class PromaEnterpriseApp(ctk.CTk):
         self.unbind("<Control-z>")
         self.unbind("<Return>")
         self.unbind("<Escape>")
-        self.log_to_terminal("Đã chốt sổ điểm chấm thủ công, về chuột thường!", "success")
-        self.toggle_touchbar_insert()
+        self.log_to_terminal("Manual annotation finalized.", "success")
         self.is_insert_menu_open = False
         self.toggle_touchbar_insert()
 
-    # --- 4. KÍCH HOẠT CHẾ ĐỘ TẤY (ERASE) ---
     def start_erase_mode(self):
         if not self.active_tab_name: return
         self.current_action = "ERASE"
         data = self.tabs[self.active_tab_name]
         data["canvas"].config(cursor="X_cursor") 
         
-        # 🚀 DỌN SẠCH TOUCH BAR - CHỈ HIỆN ĐÚNG STATUS TẤY
         for widget in self.touch_bar.winfo_children(): widget.destroy()
         
         ctk.CTkLabel(
-            self.touch_bar, text="ERASING: [ Click chuột trái vào bất kỳ ô nào để xóa ]", 
-            font=("Consolas", 13, "bold"), text_color="#B3543E"
-        ).pack(side="left", padx=20)
+            self.touch_bar, text="// ERASING MODE: Click target bounding box or table to purge", 
+            font=("Consolas", 11, "bold"), text_color="#EF4444"
+        ).pack(side="left", padx=16)
         
         ctk.CTkLabel(
-            self.touch_bar, text="Enter / ESC: Chốt sổ", 
-            font=("Consolas", 11, "italic"), text_color=TEXT_MUTED
+            self.touch_bar, text="ENTER / ESC: Exit", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
         ).pack(side="left", padx=10)
         
         self.bind("<Return>", self.finish_erase_mode)
@@ -1323,9 +1312,8 @@ class PromaEnterpriseApp(ctk.CTk):
         data["canvas"].bind("<Escape>", self.finish_erase_mode)
         
         data["canvas"].focus_set()
-        self.log_to_terminal("Đã cầm Tẩy trên tay! Gõ Enter hoặc ESC để cất tẩy.", "action")
+        self.log_to_terminal("Eraser mode armed.", "action")
 
-    # --- 5. CHỐT SỔ TẤY ---
     def finish_erase_mode(self, event=None):
         self.current_action = None
         if self.active_tab_name:
@@ -1336,16 +1324,12 @@ class PromaEnterpriseApp(ctk.CTk):
             
         self.unbind("<Return>")
         self.unbind("<Escape>")
-        self.log_to_terminal("Đã cất Tẩy, trở lại chuột thường.", "success")
-        self.toggle_touchbar_insert()
+        self.log_to_terminal("Eraser disarmed.", "success")
         self.is_insert_menu_open = False
         self.toggle_touchbar_insert()
 
     # ==========================================
-    # 🚀 CHẾ ĐỘ TABLE (CHÈN BẢNG CHÚ THÍCH TRỰC TIẾP LÊN BẢN VẼ)
-    # ==========================================
-    # ==========================================
-    # 🚀 CHẾ ĐỘ TABLE (CHÈN BẢNG CHÚ THÍCH TRỰC TIẾP LÊN BẢN VẼ)
+    # 🚀 CHẾ ĐỘ TABLE (TECHNICAL CAD/SCALE AI LEGEND TABLE)
     # ==========================================
     def start_table_mode(self):
         if not self.active_tab_name: return
@@ -1356,16 +1340,15 @@ class PromaEnterpriseApp(ctk.CTk):
         for widget in self.touch_bar.winfo_children(): widget.destroy()
         
         ctk.CTkLabel(
-            self.touch_bar, text="TABLE MODE: [ Click lên bản vẽ để đặt | Ctrl+Z để Xóa bảng ]", 
-            font=("Consolas", 13, "bold"), text_color="#2A9D8F"
-        ).pack(side="left", padx=20)
+            self.touch_bar, text="// TABLE PLACEMENT: Click canvas to deploy legend", 
+            font=("Consolas", 11, "bold"), text_color="#10B981"
+        ).pack(side="left", padx=16)
         
         ctk.CTkLabel(
-            self.touch_bar, text="Chuột trái: Đặt / Kéo / Phóng to  |  Chuột phải / Erase: Xóa", 
-            font=("Consolas", 11, "italic"), text_color=TEXT_MUTED
+            self.touch_bar, text="Left: Place/Move/Resize  |  Right/Erase: Purge", 
+            font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
         ).pack(side="left", padx=10)
         
-        # 🚀 TRÓI PHÍM CTRL+Z, ENTER, ESC VÀO CẢ APP LẪN CANVAS
         self.bind("<Control-z>", self.undo_table)
         self.bind("<Return>", self.finish_table_mode)
         self.bind("<Escape>", self.finish_table_mode)
@@ -1374,16 +1357,15 @@ class PromaEnterpriseApp(ctk.CTk):
         data["canvas"].bind("<Escape>", self.finish_table_mode)
         
         data["canvas"].focus_set()
-        self.log_to_terminal("Đã cầm Bảng! Click để đặt, góc dưới phải để phóng to/thu nhỏ.", "action")
+        self.log_to_terminal("Table placement cursor ready.", "action")
 
-    # 🚀 HÀM MỚI: CTRL + Z ĐỂ XÓA BẢNG VỪA ĐẶT
     def undo_table(self, event=None):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         trang = data["current_page"]
         if "tables" in data and trang in data["tables"]:
             del data["tables"][trang]
-            self.log_to_terminal("↩ Đã Undo xóa Bảng chú thích khỏi trang!", "sys")
+            self.log_to_terminal("↩ Table placement reverted.", "sys")
             self.render_page(self.active_tab_name, redraw_pdf=False)
 
     def finish_table_mode(self, event=None):
@@ -1398,12 +1380,11 @@ class PromaEnterpriseApp(ctk.CTk):
         self.unbind("<Control-z>")
         self.unbind("<Return>")
         self.unbind("<Escape>")
-        self.log_to_terminal("Đã chốt vị trí Bảng chú thích, về chuột thường.", "success")
-        self.toggle_touchbar_insert()
+        self.log_to_terminal("Legend table coordinates locked.", "success")
         self.is_insert_menu_open = False
         self.toggle_touchbar_insert()
 
-    # 🚀 KIẾN TRÚC MỚI: XOAY TRANG BẢN VẼ (VÀ XOAY CẢ KÝ HIỆU)
+    # 🚀 XOAY TRANG BẢN VẼ
     def rotate_page(self):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
@@ -1411,23 +1392,17 @@ class PromaEnterpriseApp(ctk.CTk):
         page_idx = data["current_page"]
         page = doc.load_page(page_idx)
         
-        # Lấy kích thước TRƯỚC KHI xoay
         old_h = page.rect.height
-        
-        # Xoay tờ giấy PDF 90 độ theo chiều kim đồng hồ
         page.set_rotation((page.rotation + 90) % 360)
         
-        # Quét dọn vùng chọn nháp (tránh lỗi tọa độ khi bản vẽ lật ngang)
         data["vung_chon_pdf"] = None
         if data.get("rect_id"): data["canvas"].delete(data["rect_id"])
         
-        # 🚀 TOÁN HỌC MA THUẬT: Xoay tọa độ của TẤT CẢ markers đã đếm
         if page_idx in data.get("markers", {}):
             for ma_den, thong_tin in data["markers"][page_idx].items():
                 toa_do_moi = []
                 for box in thong_tin["toa_do"]:
                     x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
-                    # Thuật toán tịnh tiến tọa độ 90 độ CW:
                     nx0 = old_h - y1
                     ny0 = x0
                     nx1 = old_h - y0
@@ -1435,9 +1410,8 @@ class PromaEnterpriseApp(ctk.CTk):
                     toa_do_moi.append([nx0, ny0, nx1, ny1])
                 thong_tin["toa_do"] = toa_do_moi
         
-        # Bắt nó load lại bản vẽ mới
         self.render_page(self.active_tab_name, redraw_pdf=True)
-        self.log_to_terminal("Đã xoay trang 90° và nắn lại tọa độ ký hiệu!", "action")
+        self.log_to_terminal("Page rotated 90° clockwise. Coordinates transformed.", "action")
 
     # ==========================================
     # 🚀 CHẾ ĐỘ MONOCHROME (LỌC TRẮNG ĐEN BẢN VẼ GỐC)
@@ -1446,22 +1420,19 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # Lật trạng thái Bật <-> Tắt
         data["is_monochrome"] = not data.get("is_monochrome", False)
         
-        # Đổi màu nút trên Toolbar để sếp nhìn là biết tab này đang bật hay tắt Mono
         if data["is_monochrome"]:
             self.btn_mono.configure(fg_color=ACCENT_MAIN, text_color=BG_DARK)
-            self.log_to_terminal("◐ Đã bật chế độ Monochrome (Nền bản vẽ Trắng Đen)!", "action")
+            self.log_to_terminal("◐ Monochrome background filter activated (Grayscale).", "action")
         else:
             self.btn_mono.configure(fg_color=PANEL_BG, text_color=TEXT_MAIN)
-            self.log_to_terminal("◐ Đã tắt Monochrome, trả về màu gốc bản vẽ.", "sys")
+            self.log_to_terminal("◐ Original blueprint color scheme restored.", "sys")
             
-        # Ép vẽ lại tờ PDF với bộ lọc mới
         self.render_page(self.active_tab_name, redraw_pdf=True)
 
     # ==========================================
-    # KHU VỰC 6: XUẤT BẢN VẼ (ĐÃ BƠM BỘ LỌC MONOCHROME EXPORT & TABLE LEGEND)
+    # KHU VỰC 6: XUẤT BẢN VẼ (SCALE AI PRECISION EXPORT)
     # ==========================================
     def export_markup_pdf(self):
         if not self.active_tab_name:
@@ -1472,22 +1443,20 @@ class PromaEnterpriseApp(ctk.CTk):
         duong_dan_goc = data_tab["pdf_doc"].name
         
         file_luu = fd.asksaveasfilename(
-            title="Chọn nơi lưu bản vẽ bóc tách", defaultextension=".pdf",
-            filetypes=[("PDF Files", "*.pdf")], initialfile=f"Boc_Tach_{self.active_tab_name}"
+            title="Select Output Directory for Annotation PDF", defaultextension=".pdf",
+            filetypes=[("PDF Files", "*.pdf")], initialfile=f"Takeoff_Export_{self.active_tab_name}"
         )
         if not file_luu:
-            self.log_to_terminal("Hủy bỏ xuất file.", "sys")
+            self.log_to_terminal("Export procedure canceled.", "sys")
             return
             
-        self.log_to_terminal("Đang khởi tạo bản sao và đóng dấu Markup & Bảng... VUI LÒNG ĐỢI!", "action")
+        self.log_to_terminal("Generating PDF document with burned-in annotations... PLEASE WAIT!", "action")
         
         markers_data = data_tab.get("markers", {}) 
         bang_mau = data_tab.get("bang_mau_vat_the", {})
         visibility = data_tab.get("layer_visibility", {})
         scales = data_tab.get("layer_scale", {})
         tables_data = data_tab.get("tables", {})
-        
-        # 🚀 LẤY TRẠNG THÁI MONOCHROME CỦA TAB HIỆN TẠI GỬI XUỐNG XƯỞNG IN
         is_mono = data_tab.get("is_monochrome", False)
         
         goc_xoay = {i: data_tab["pdf_doc"].load_page(i).rotation for i in range(data_tab["pdf_doc"].page_count)}
@@ -1505,30 +1474,26 @@ class PromaEnterpriseApp(ctk.CTk):
             tong_o_ve = 0
             tong_bang_ve = 0
             
-            # 1. ĐỒNG BỘ GÓC XOAY TRƯỚC KHI ĐÓNG DẤU
             for i in range(pdf_copy.page_count):
                 p = pdf_copy.load_page(i)
                 if p.rotation != goc_xoay.get(i, 0):
                     p.set_rotation(goc_xoay.get(i, 0))
             
-            # 2. QUÉT TỪNG TRANG ĐỂ LỌC TRẮNG ĐEN (NẾU BẬT MONO), VẼ MARKER & VẼ TABLE
             for trang_idx in range(pdf_copy.page_count):
                 page = pdf_copy.load_page(trang_idx)
                 
-                # --- 🚀 BỘ LỌC MONOCHROME EXPORT: BIẾN NỀN TRANG PDF THÀNH TRẮNG ĐEN ---
+                # BỘ LỌC MONOCHROME EXPORT
                 if is_mono:
-                    # Render trang hiện tại sang Grayscale Pixmap ở độ phân giải cao 300 DPI (Zoom ~ 2.0)
                     mat_mono = fitz.Matrix(2.0, 2.0)
                     pix_mono = page.get_pixmap(matrix=mat_mono, colorspace=fitz.csGRAY)
                     
-                    # Xóa toàn bộ nội dung màu cũ và đè nền trắng đen mới lên đúng khung trang
                     rect_page = page.rect
                     page.clean_contents()
                     page.insert_image(rect_page, pixmap=pix_mono)
                 
                 layers = markers_data.get(trang_idx, {})
                 
-                # --- A. VẼ CÁC Ô VUÔNG MARKER ---
+                # A. VẼ BOUNDING BOX MARKERS
                 for ma_den, thong_tin in layers.items():
                     if not visibility.get(ma_den, True): continue
                         
@@ -1558,7 +1523,7 @@ class PromaEnterpriseApp(ctk.CTk):
                         shape.finish(color=rgb, width=2)
                         shape.commit()
 
-                # --- B. VẼ BẢNG CHÚ THÍCH (TABLE LEGEND) THẲNG VÀO TRANG PDF ---
+                # B. VẼ BẢNG CHÚ THÍCH (SCALE AI TECHNICAL LEGEND TABLE)
                 if trang_idx in tables_data:
                     tb = tables_data[trang_idx]
                     tx = tb["x"] if isinstance(tb, dict) else tb[0]
@@ -1570,10 +1535,10 @@ class PromaEnterpriseApp(ctk.CTk):
                     row_h = 18.0 * t_scale
                     h_table = max((len(danh_sach_ma) + 1.8) * row_h, 45.0 * t_scale)
                     
-                    rgb_vien = (0.69, 0.49, 0.30)
-                    rgb_nen = (0.11, 0.11, 0.12)
-                    rgb_chu_trang = (0.96, 0.96, 0.86)
-                    rgb_chu_vang = (0.83, 0.69, 0.48)
+                    rgb_vien = (0.69, 0.49, 0.30)       # PROMA Amber Bronze #B07D4C
+                    rgb_nen = (0.04, 0.04, 0.04)        # Scale AI Obsidian #09090B
+                    rgb_chu_trang = (0.98, 0.98, 0.98)  # Zinc 50
+                    rgb_chu_vang = (0.85, 0.55, 0.28)   # Amber 500
                     
                     shape_table = page.new_shape()
                     
@@ -1585,7 +1550,7 @@ class PromaEnterpriseApp(ctk.CTk):
                         fitz.Point(tx, ty + row_h * 1.3), 
                         fitz.Point(tx + w_table, ty + row_h * 1.3)
                     )
-                    shape_table.finish(color=rgb_vien, width=0.5 * t_scale)
+                    shape_table.finish(color=(0.15, 0.15, 0.16), width=0.5 * t_scale)
                     
                     for idx, ma_den in enumerate(danh_sach_ma):
                         y_row = ty + (idx + 1.9) * row_h
@@ -1603,7 +1568,7 @@ class PromaEnterpriseApp(ctk.CTk):
                     
                     page.insert_text(
                         fitz.Point(tx + w_table / 2 - (45 * t_scale), ty + row_h * 0.85), 
-                        "TAKEOFF LEGEND / TỔNG HỢP", 
+                        "TAKEOFF LEGEND // ANNOTATIONS", 
                         fontsize=font_size_title, color=rgb_chu_trang
                     )
                     
@@ -1633,72 +1598,75 @@ class PromaEnterpriseApp(ctk.CTk):
 
     def _hoan_thanh_export(self, thanh_cong, file_luu, tong_o_ve, tong_bang_ve, loi):
         if thanh_cong:
-            self.log_to_terminal(f"✅ XUẤT FILE THÀNH CÔNG! Đã đóng dấu {tong_o_ve} markup & {tong_bang_ve} bảng chú thích.", "success")
-            self.log_to_terminal(f"File lưu tại: {file_luu}", "sys")
+            self.log_to_terminal(f"✅ ANNOTATION EXPORT COMPLETE // {tong_o_ve} bounding boxes & {tong_bang_ve} legend tables stamped.", "success")
+            self.log_to_terminal(f"File stored at: {file_luu}", "sys")
         else:
-            self.log_to_terminal(f"❌ LỖI XUẤT FILE: {loi}", "error")
+            self.log_to_terminal(f"❌ EXPORT ENGINE ERROR: {loi}", "error")
 
     # ==========================================
-    # 🚀 KHU VỰC 5.1: DẠY HỌC MINH BẠCH - HIỆN POPUP XÁC NHẬN
+    # KHU VỰC 5.1: DẠY HỌC MINH BẠCH - HIỆN POPUP XÁC NHẬN
     # ==========================================
     def train_legend_action(self):
-        file_bang = fd.askopenfilename(title="Chọn file chứa BẢNG CHÚ THÍCH", filetypes=[("PDF", "*.pdf")])
+        file_bang = fd.askopenfilename(title="Select Legend PDF Reference", filetypes=[("PDF", "*.pdf")])
         if not file_bang: return
         
-        dialog = ctk.CTkInputDialog(text="Bảng chú thích nằm ở trang số mấy? (VD: 1)", title="Trang chứa Bảng")
+        dialog = ctk.CTkInputDialog(text="Enter 1-based page number containing target legend:", title="Legend Reference Page")
         trang_str = dialog.get_input()
         try:
             trang_so = int(trang_str) - 1 
             if trang_so < 0: raise ValueError
         except:
-            self.log_to_terminal("Lỗi: Số trang không hợp lệ!", "error")
+            self.log_to_terminal("ERROR: Invalid target page index provided.", "error")
             return
 
-        self.log_to_terminal(f"Đang phân tích Bảng Chú Thích tại trang {trang_so + 1}... Đợi em tí!", "action")
-        # Gọi Threading để UI không bị đơ cựa
+        self.log_to_terminal(f"Analyzing target legend geometry on page {trang_so + 1}... Please stand by.", "action")
         threading.Thread(target=self._thread_train_legend, args=(file_bang, trang_so), daemon=True).start()
 
     def _thread_train_legend(self, filepath, page_idx):
         from logic.api_handler import goi_backend_hoc_ky_hieu
         thanh_cong, ket_qua = goi_backend_hoc_ky_hieu(filepath, page_idx)
-        # Ném kết quả về UI an toàn
         self.after(0, self._hoan_thanh_train, thanh_cong, ket_qua)
         
     def _hoan_thanh_train(self, thanh_cong, ket_qua):
         if thanh_cong and ket_qua.get("data"):
-            self.log_to_terminal("Đã vét được dữ liệu! Vui lòng kiểm tra trên Cửa sổ Xác minh.", "action")
+            self.log_to_terminal("Training signatures captured. Awaiting user verification...", "action")
             self.hien_thi_popup_xac_minh(ket_qua["data"])
         else:
-            self.log_to_terminal(f"❌ LỖI HỌC BÀI: {ket_qua.get('error', 'Lỗi không xác định!')}", "error")
+            self.log_to_terminal(f"❌ SYMBOL TRAINING FAULT: {ket_qua.get('error', 'Unknown exception')}", "error")
 
     def hien_thi_popup_xac_minh(self, du_lieu_hoc_duoc):
-        # 🚀 CỬA SỔ POPUP XÁC MINH CỰC CHẤT
+        # 🚀 CỬA SỔ POPUP XÁC MINH CỰC CHẤT (SCALE AI TECHNICAL DIALOG)
         popup = ctk.CTkToplevel(self)
-        popup.title("XÁC MINH BẢNG KÝ HIỆU")
-        popup.geometry("450x550")
+        popup.title("SYMBOL SIGNATURE VERIFICATION // PROMA AI")
+        popup.geometry("480x560")
         popup.attributes("-topmost", True) 
         popup.configure(fg_color=BG_DARK)
 
-        ctk.CTkLabel(popup, text="ĐÃ NHẬN DIỆN CÁC MÃ SAU:", font=("Montserrat Bold", 16, "bold"), text_color=ACCENT_MAIN).pack(pady=(20, 10))
-        ctk.CTkLabel(popup, text="Vui lòng kiểm tra xem máy đã bắt đúng Mã và Kích thước chưa.", font=("Montserrat Bold", 12), text_color=TEXT_MUTED).pack(pady=(0, 10))
+        ctk.CTkLabel(popup, text="// IDENTIFIED LEGEND SIGNATURES:", font=("Consolas", 14, "bold"), text_color=ACCENT_MAIN).pack(pady=(20, 6))
+        ctk.CTkLabel(popup, text="Verify bounding box dimensions [w x h] before committing model weights.", font=("Consolas", 11), text_color=TEXT_MUTED).pack(pady=(0, 14))
 
-        scroll = ctk.CTkScrollableFrame(popup, width=380, height=350, fg_color=PANEL_BG, corner_radius=8)
+        scroll = ctk.CTkScrollableFrame(
+            popup, width=410, height=360, 
+            fg_color=PANEL_BG, corner_radius=4, border_width=1, border_color=PANEL_BORDER
+        )
         scroll.pack(pady=10, padx=20, fill="both", expand=True)
 
         for ma, thong_so in du_lieu_hoc_duoc.items():
             row = ctk.CTkFrame(scroll, fg_color="transparent")
-            row.pack(fill="x", pady=5)
-            ctk.CTkLabel(row, text=f"MÃ: {ma}", font=("Consolas", 14, "bold"), text_color=TEXT_MAIN).pack(side="left", padx=10)
-            ctk.CTkLabel(row, text=f"[ Rộng: {thong_so['w']} | Cao: {thong_so['h']} ]", font=("Consolas", 12), text_color=TEXT_MUTED).pack(side="right", padx=10)
+            row.pack(fill="x", pady=6)
+            ctk.CTkLabel(row, text=f"LAYER // {ma}", font=("Consolas", 13, "bold"), text_color=TEXT_MAIN).pack(side="left", padx=10)
+            ctk.CTkLabel(row, text=f"BOX [ W: {thong_so['w']} | H: {thong_so['h']} ]", font=("Consolas", 11, "bold"), text_color=TEXT_MUTED).pack(side="right", padx=10)
 
         def xac_nhan_luu():
             if not hasattr(self, 'chu_ky_ai'): self.chu_ky_ai = {}
             self.chu_ky_ai.update(du_lieu_hoc_duoc)
-            self.log_to_terminal(f"✅ Đã đóng dấu xác nhận. Sẵn sàng bóc tách chống nhầm lẫn!", "success")
+            self.log_to_terminal(f"✅ Model signatures validated and committed to active pipeline.", "success")
             popup.destroy()
 
         ctk.CTkButton(
-            popup, text="✔ XÁC NHẬN CHUẨN ĐÉT", height=45, corner_radius=8,
-            font=("Montserrat Bold", 14, "bold"), fg_color=ACCENT_MAIN, hover_color=ACCENT_HOVER, text_color=BG_DARK,
+            popup, text="[ ✔ COMMIT SYMBOL SIGNATURES ]", height=46, corner_radius=4,
+            font=("Consolas", 13, "bold"), fg_color=ACCENT_MAIN, 
+            hover_color=ACCENT_HOVER, text_color=BG_DARK, 
+            border_width=1, border_color="#E6A86E",
             command=xac_nhan_luu
-        ).pack(pady=(10, 20), padx=20, fill="x")
+        ).pack(pady=(12, 20), padx=20, fill="x")
