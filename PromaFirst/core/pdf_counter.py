@@ -60,7 +60,7 @@ def hoc_bang_ky_hieu(duong_dan_pdf, trang_so):
 
 
 # ==========================================
-# 🚀 BƯỚC 2: CODE ĐẾM TEXT SIÊU TỐC 3 GIÂY (NÂNG CẤP REGEX V4)
+# 🚀 BƯỚC 2: CODE ĐẾM TEXT SIÊU TỐC (MẮT THẦN NHÌN XUYÊN LỀ)
 # ==========================================
 def dem_ky_hieu_text(duong_dan_pdf, trang_so, vung_chon=None):
     try:
@@ -69,28 +69,34 @@ def dem_ky_hieu_text(duong_dan_pdf, trang_so, vung_chon=None):
         doc = fitz.open(duong_dan_pdf)
         page = doc.load_page(trang_so)
         
-        # 🚀 KHOANH VÙNG HOẶC QUÉT TOÀN BẢN VẼ
+        # 🚀 BÍ THUẬT MỞ MẮT THẦN: Ép máy quét toàn bộ khổ giấy vật lý (MediaBox), 
+        # Bất chấp thợ CAD để lề (CropBox) ra sao, chữ lém ra ngoài bắt sạch 100%!
+        page.set_cropbox(page.mediabox)
+        words = page.get_text("words")
+        
+        # Xử lý Vùng Chọn (Nếu sếp có khoanh vùng)
+        khung_chon = None
         if isinstance(vung_chon, list) and len(vung_chon) == 4:
-            khung = fitz.Rect(vung_chon[0], vung_chon[1], vung_chon[2], vung_chon[3])
-        else:
-            khung = fitz.Rect(0, 0, page.rect.width * 0.85, page.rect.height)
+            dx, dy = page.rect.x0, page.rect.y0
+            khung_chon = fitz.Rect(
+                vung_chon[0] + dx - 15, 
+                vung_chon[1] + dy - 15, 
+                vung_chon[2] + dx + 15, 
+                vung_chon[3] + dy + 15
+            )
         
-        words = page.get_text("words", clip=khung)
-        
-        # ==========================================
-        # 🚀 BÙA REGEX V4: TÁCH BẠCH PHỤ KIỆN VÀ HỆ SỐ NHÂN
-        # Group 1: Lấy Mã Gốc + Phụ Kiện (VD: SP-02, SP-02(H), SP-02(EM))
-        # Group 2: Lấy Hệ số nhân từ (x2), (X3)
-        # ==========================================
         mau_tim_kiem = r'^((?=.*[a-zA-Z])[a-zA-Z0-9\-_]{2,20}(?:\((?![xX]\d)[a-zA-Z0-9\-_]+\))?)(?:\([xX](\d+)\))?$'
-        
         ket_qua = {}
         
         for w in words:
-            # 🚀 MẸO VÉT RÁC: Xóa luôn dấu cách lọt vào giữa chữ để đề phòng 
-            # (VD thợ CAD gõ "SP-02 (H)" -> tự ép thành "SP-02(H)" để bế vào kho)
-            text = w[4].strip(".,;:{}[ ]").replace(" ", "")
+            x0, y0, x1, y1 = w[0], w[1], w[2], w[3]
+            rect_chu = fitz.Rect(x0, y0, x1, y1)
             
+            if khung_chon:
+                if not khung_chon.intersects(rect_chu):
+                    continue
+            
+            text = w[4].strip(".,;:{}[ ]").replace(" ", "")
             match = re.match(mau_tim_kiem, text)
             if match:
                 ma_goc = match.group(1).upper() 
@@ -100,8 +106,9 @@ def dem_ky_hieu_text(duong_dan_pdf, trang_so, vung_chon=None):
                     ket_qua[ma_goc] = {"so_luong": 0, "toa_do": []}
                 
                 ket_qua[ma_goc]["so_luong"] += he_so_nhan
-                ket_qua[ma_goc]["toa_do"].append([w[0], w[1], w[2], w[3]])
+                ket_qua[ma_goc]["toa_do"].append([x0, y0, x1, y1])
                 
         return ket_qua
     except Exception as e:
-        return {"error": str(e)}
+        # Báo lỗi rõ ràng cho Front-end biết
+        return {"error": f"Lỗi Backend: {str(e)}"}
