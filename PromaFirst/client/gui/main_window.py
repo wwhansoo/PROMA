@@ -106,8 +106,64 @@ class PromaEnterpriseApp(ctk.CTk):
         self.add_new_tab(filepath)
 
     def open_additional_pdf(self):
-        filepath = fd.askopenfilename(title="Select Blueprint", filetypes=[("Bản vẽ PDF", "*.pdf")])
-        if filepath: self.add_new_tab(filepath)
+        # Nếu chưa mở Project nào thì mặc định mở New Project luôn, đéo cần hỏi
+        if not self.active_tab_name: 
+            filepath = fd.askopenfilename(title="Select Blueprint", filetypes=[("Bản vẽ PDF", "*.pdf")])
+            if filepath: self.add_new_tab(filepath)
+            return
+
+        # 🚀 HUD POPUP: HỎI SẾP MUỐN GỘP VÀO PROJECT HAY TẠO TAB MỚI
+        popup = ctk.CTkToplevel(self)
+        popup.title("PROJECT WORKSPACE // PROMA")
+        popup.geometry("480x220")
+        popup.attributes("-topmost", True)
+        popup.configure(fg_color=BG_DARK)
+
+        ctk.CTkLabel(popup, text="// OPEN MODE SELECTION", font=("Consolas", 15, "bold"), text_color=ACCENT_MAIN).pack(pady=(25, 10))
+        ctk.CTkLabel(popup, text="Select how you want to load the new blueprint into the workspace.", font=("Consolas", 11), text_color=TEXT_MUTED).pack(pady=(0, 15))
+
+        btn_frame = ctk.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=10)
+
+        def add_to_current():
+            popup.destroy()
+            filepath = fd.askopenfilename(title="Merge Blueprint into Project", filetypes=[("Bản vẽ PDF", "*.pdf")])
+            if filepath: self.merge_pdf_to_current_project(filepath)
+
+        def create_new():
+            popup.destroy()
+            filepath = fd.askopenfilename(title="Select Blueprint for New Project", filetypes=[("Bản vẽ PDF", "*.pdf")])
+            if filepath: self.add_new_tab(filepath)
+
+        ctk.CTkButton(
+            btn_frame, text="[ + APPEND TO PROJECT ]", height=42, corner_radius=4, 
+            font=("Consolas", 12, "bold"), fg_color=PANEL_BG, hover_color=TAB_HOVER, 
+            border_width=1, border_color=ACCENT_MAIN, text_color=ACCENT_MAIN, 
+            command=add_to_current
+        ).pack(side="left", expand=True, fill="x", padx=6)
+        
+        ctk.CTkButton(
+            btn_frame, text="[ NEW PROJECT TAB ]", height=42, corner_radius=4, 
+            font=("Consolas", 12, "bold"), fg_color=ACCENT_MAIN, hover_color=ACCENT_HOVER, 
+            text_color=BG_DARK, border_width=1, border_color="#E6A86E", 
+            command=create_new
+        ).pack(side="right", expand=True, fill="x", padx=6)
+
+    # 🚀 ĐỘNG CƠ GỘP BẢN VẼ BẰNG FITZ VECTOR
+    def merge_pdf_to_current_project(self, filepath):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        try:
+            doc_moi = fitz.open(filepath)
+            # Lệnh sát thủ: Nhét toàn bộ file mới vào đít file hiện tại
+            data["pdf_doc"].insert_pdf(doc_moi)
+            doc_moi.close()
+            
+            # Đồng bộ lại số trang trên UI
+            self.lbl_page.configure(text=f"{data['current_page'] + 1:02d} / {data['pdf_doc'].page_count:02d}")
+            self.log_to_terminal(f"APPENDED: {os.path.basename(filepath)} added. Total project pages: {data['pdf_doc'].page_count}", "success")
+        except Exception as e:
+            self.log_to_terminal(f"MERGE ENGINE EXCEPTION: {e}", "error")
 
     # ==========================================
     # KHU VỰC 2: WORKSPACE (SCALE AI ANNOTATION STUDIO)
@@ -320,6 +376,27 @@ class PromaEnterpriseApp(ctk.CTk):
     # ==========================================
     # KHU VỰC 3: LAYER MANAGER ROWS
     # ==========================================
+
+    # 🚀 HÀM MỚI: CHỈ HIỆN LAYER CỦA TRANG HIỆN TẠI
+    def build_layer_manager_for_current_page(self):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        
+        # Dọn sạch Panel rác của trang cũ
+        for child in self.layer_frame.winfo_children():
+            child.destroy()
+            
+        data["layer_switches"] = {}
+        
+        trang_idx = data["current_page"]
+        markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
+        
+        # Chỉ lôi ra những mã CÓ MẶT trên trang hiện tại
+        for ma_den in sorted(markers_trang_nay.keys()):
+            mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
+            so_l = markers_trang_nay[ma_den].get("so_luong", 0)
+            self.add_layer_toggle_ui(ma_den, mau_sac, so_l)
+
     def add_layer_toggle_ui(self, ma_den, mau_sac, so_luong=0):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
@@ -448,17 +525,8 @@ class PromaEnterpriseApp(ctk.CTk):
 
         self.log_to_terminal(f"Đã rename Layer: [{ma_cu}] -> [{ma_moi}]", "success")
         
-        for child in self.layer_frame.winfo_children(): child.destroy()
-        data["layer_switches"] = {}
-        
-        trang_hien_tai = data["current_page"]
-        markers_trang_nay = data.get("markers", {}).get(trang_hien_tai, {})
-        
-        for ma_den in sorted(data["bang_mau_vat_the"].keys()):
-            mau_sac = data["bang_mau_vat_the"][ma_den]
-            so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
-            self.add_layer_toggle_ui(ma_den, mau_sac, so_l)
-            
+        # Gọi bùa lọc Layer thay cho mớ code loop cũ
+        self.build_layer_manager_for_current_page()
         self.render_page(self.active_tab_name, redraw_pdf=False)
 
     def update_layer_manager_counts(self):
@@ -520,12 +588,30 @@ class PromaEnterpriseApp(ctk.CTk):
         canvas.bind("<MouseWheel>", self.on_zoom)
         canvas.bind("<Motion>", self.track_mouse)
 
+        # 🚀 AUTO-CENTER ALGORITHM: Tính toán Tâm của Canvas trước khi nhét bản vẽ vào
+        self.canvas_area.update_idletasks() # Ép TKinter hiện hình để lấy kích thước
+        cw = canvas.winfo_width()
+        ch = canvas.winfo_height()
+        if cw < 10: cw = 1200  # Fallback nếu UI chưa nở
+        if ch < 10: ch = 700
+
+        doc = fitz.open(filepath)
+        page = doc.load_page(0)
+        
+        zoom_macdinh = 2.0
+        pw = page.rect.width * zoom_macdinh
+        ph = page.rect.height * zoom_macdinh
+        
+        # Đẩy tọa độ x, y ra chính giữa Canvas
+        start_x = (cw - pw) / 2
+        start_y = (ch - ph) / 2
+
         self.tabs[tab_name] = {
-            "pdf_doc": fitz.open(filepath),
+            "pdf_doc": doc,
             "current_page": 0,
-            "zoom_level": 2.0,
+            "zoom_level": zoom_macdinh,
             "drag_data": {"x": 0, "y": 0},
-            "img_pos": [50, 50],
+            "img_pos": [start_x, start_y], # 🚀 BẢN VẼ LẬP TỨC NẰM NGAY GIỮA MÀN HÌNH
             "markers": {},  
             "bang_mau_vat_the": {},    
             "layer_visibility": {},    
@@ -571,10 +657,13 @@ class PromaEnterpriseApp(ctk.CTk):
                 else:
                     self.btn_mono.configure(fg_color=PANEL_BG, text_color=TEXT_MAIN)
                 
-                for ma_den in sorted(tab_data["bang_mau_vat_the"].keys()):
-                    mau_sac = tab_data["bang_mau_vat_the"][ma_den]
-                    so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
-                    self.add_layer_toggle_ui(ma_den, mau_sac, so_l)
+                if tab_data.get("is_monochrome", False):
+                    self.btn_mono.configure(fg_color=ACCENT_MAIN, text_color=BG_DARK)
+                else:
+                    self.btn_mono.configure(fg_color=PANEL_BG, text_color=TEXT_MAIN)
+                
+                # 🚀 Chỉ hiện Layer của trang hiện tại trên Tab này
+                self.build_layer_manager_for_current_page()
 
                 self.render_page(name)
             else:
@@ -1018,16 +1107,18 @@ class PromaEnterpriseApp(ctk.CTk):
         data = self.tabs[self.active_tab_name]
         if data["current_page"] > 0:
             data["current_page"] -= 1
-            self.render_page(self.active_tab_name)
             self.lbl_page.configure(text=f"{data['current_page'] + 1:02d} / {data['pdf_doc'].page_count:02d}")
+            self.build_layer_manager_for_current_page() # 🚀 QUÉT RÁC TRANG CŨ
+            self.render_page(self.active_tab_name)
 
     def next_page(self):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         if data["current_page"] < data["pdf_doc"].page_count - 1:
             data["current_page"] += 1
-            self.render_page(self.active_tab_name)
             self.lbl_page.configure(text=f"{data['current_page'] + 1:02d} / {data['pdf_doc'].page_count:02d}")
+            self.build_layer_manager_for_current_page() # 🚀 QUÉT RÁC TRANG CŨ
+            self.render_page(self.active_tab_name)
 
     def log_to_terminal(self, text, tag="sys"):
         self.txt_log.configure(state="normal")
@@ -1036,7 +1127,7 @@ class PromaEnterpriseApp(ctk.CTk):
         self.txt_log.configure(state="disabled")
 
     # ==========================================
-    # KHU VỰC 5: KÍCH HOẠT ĐỘNG CƠ BACKEND (PDF) CÓ KHOANH VÙNG
+    # KHU VỰC 5: KÍCH HOẠT ĐỘNG CƠ BACKEND (QUÉT TOÀN PROJECT & BỌC THÉP)
     # ==========================================
     def run_engine(self):
         if not self.active_tab_name:
@@ -1045,81 +1136,139 @@ class PromaEnterpriseApp(ctk.CTk):
             
         mode = self.mode_var.get()
         data_tab = self.tabs[self.active_tab_name]
-        duong_dan_file = data_tab["pdf_doc"].name
+        
+        tong_so_trang = data_tab["pdf_doc"].page_count
         trang_hien_tai = data_tab["current_page"]
         
-        self.log_to_terminal(f"RUNNING MODEL [{mode}] ON ANNOTATION LAYER [{self.active_tab_name}]...", "action")
-        self.btn_run.configure(state="disabled", text="PROCESSING DETECTION...")
+        self.log_to_terminal(f"RUNNING MODEL [{mode}] ON PROJECT [{self.active_tab_name}]...", "action")
+        self.btn_run.configure(state="disabled", text="PROCESSING...")
         
         vung = None
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
             vung = data_tab.get("vung_chon_pdf")
             if not vung:
-                self.log_to_terminal("WARN: Chưa vẽ box vùng chọn! Detector sẽ xử lý toàn trang.", "sys")
+                self.log_to_terminal("WARN: Chưa vẽ box vùng chọn! Detector quét toàn trang.", "sys")
         
         chu_ky = getattr(self, 'chu_ky_ai', {})
         
+        # 🚀 THUẬT TOÁN ĐỒNG BỘ RAM -> ĐĨA CỨNG: 
+        # Ép phần mềm lưu nguyên cái Project (đã gộp các trang) ra một file tạm dưới ổ cứng.
+        # Xong mới ném file tạm đó cho Backend nó quét, đảm bảo đéo bao giờ bị crash vì lệch trang!
+        import tempfile
+        import time
+        temp_path = os.path.join(tempfile.gettempdir(), f"proma_scan_{int(time.time())}.pdf")
+        try:
+            data_tab["pdf_doc"].save(temp_path)
+        except Exception as e:
+            self.log_to_terminal(f"LỖI TẠO FILE TẠM (RAM->DISK): {e}", "error")
+            self.btn_run.configure(state="normal", text="BREAK GROUND")
+            return
+        
         threading.Thread(
             target=self._thread_run_engine, 
-            args=(duong_dan_file, trang_hien_tai, mode, chu_ky, vung),
+            args=(temp_path, tong_so_trang, trang_hien_tai, mode, chu_ky, vung),
             daemon=True
         ).start()
 
-    def _thread_run_engine(self, filepath, page_idx, mode, chu_ky, vung_chon):
-        from logic.api_handler import goi_backend_boc_tach
-        thanh_cong, ket_qua = goi_backend_boc_tach(filepath, page_idx, mode, chu_ky, vung_chon)
-        self.after(0, self._hoan_thanh_run, thanh_cong, ket_qua)
-        
-    def _hoan_thanh_run(self, thanh_cong, ket_qua):
-        self.btn_run.configure(state="normal", text="RUN QUANTITY DETECTOR >>")
+    def _thread_run_engine(self, temp_path, tong_so_trang, trang_hien_tai, mode, chu_ky, vung_chon):
+        try:
+            from logic.api_handler import goi_backend_boc_tach
+            all_results = {}
+            co_loi = False
+            loi_msg = ""
+            
+            # Quét sạch sành sanh các trang có trong Project
+            for p in range(tong_so_trang):
+                # Khoanh vùng chỉ áp dụng trên trang đang mở, trang khác auto quét full
+                vung_cho_trang_nay = vung_chon if p == trang_hien_tai else None
+                thanh_cong, ket_qua = goi_backend_boc_tach(temp_path, p, mode, chu_ky, vung_cho_trang_nay)
+                
+                if thanh_cong:
+                    # Bắt chặt lỗi ẩn từ Backend ném về
+                    if isinstance(ket_qua, dict) and "error" in ket_qua:
+                        co_loi = True
+                        loi_msg = ket_qua["error"]
+                        break
+                    elif isinstance(ket_qua, dict):
+                        # Khớp dữ liệu bất chấp việc backend có bọc trong key "data" hay không
+                        all_results[p] = ket_qua.get("data", ket_qua) 
+                    else:
+                        all_results[p] = {}
+                else:
+                    co_loi = True
+                    loi_msg = str(ket_qua)
+                    break 
+                    
+            # 🚀 Chạy xong thì quét dọn sạch sẽ file tạm trên ổ cứng
+            import os
+            if os.path.exists(temp_path):
+                try: os.remove(temp_path)
+                except: pass
+
+            if co_loi:
+                self.after(0, self._hoan_thanh_run, False, loi_msg)
+            else:
+                self.after(0, self._hoan_thanh_run, True, all_results)
+                
+        except Exception as e:
+            self.after(0, self._hoan_thanh_run, False, f"THREAD CRASH: {str(e)}")
+            
+    def _hoan_thanh_run(self, thanh_cong, all_results):
+        self.btn_run.configure(state="normal", text="BREAK GROUND")
         if not self.active_tab_name: return
         data_tab = self.tabs[self.active_tab_name]
         
         if thanh_cong:
-            data_dem = ket_qua.get("data", {})
-            if data_dem:
-                self.log_to_terminal("ANNOTATION SYMBOLS DETECTED. Aligning orientation matrix...", "success")
-                if "markers" not in data_tab: data_tab["markers"] = {}
-                trang_hien_tai = data_tab["current_page"]
-                
-                # NẮN TỌA ĐỘ AI THEO GÓC XOAY HIỆN TẠI
-                page = data_tab["pdf_doc"].load_page(trang_hien_tai)
-                goc_xoay = page.rotation
-                
-                if goc_xoay != 0:
-                    w_goc = page.rect.width if goc_xoay in [0, 180] else page.rect.height
-                    h_goc = page.rect.height if goc_xoay in [0, 180] else page.rect.width
-                    
-                    for ma_den, thong_tin in data_dem.items():
-                        toa_do_da_xoay = []
-                        for box in thong_tin["toa_do"]:
-                            x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
-                            if goc_xoay == 90:
-                                nx0, ny0, nx1, ny1 = h_goc - y1, x0, h_goc - y0, x1
-                            elif goc_xoay == 180:
-                                nx0, ny0, nx1, ny1 = w_goc - x1, h_goc - y1, w_goc - x0, h_goc - y0
-                            elif goc_xoay == 270:
-                                nx0, ny0, nx1, ny1 = y0, w_goc - x1, y1, w_goc - x0
-                            else:
-                                nx0, ny0, nx1, ny1 = x0, y0, x1, y1
-                            toa_do_da_xoay.append([min(nx0, nx1), min(ny0, ny1), max(nx0, nx1), max(ny0, ny1)])
-                        thong_tin["toa_do"] = toa_do_da_xoay
-
-                data_tab["markers"][trang_hien_tai] = data_dem
-                
-                for ma_den, thong_tin in data_dem.items():
-                    if ma_den not in data_tab["bang_mau_vat_the"]:
-                        mau_moi = self.danh_sach_mau[self.mau_index % len(self.danh_sach_mau)]
-                        data_tab["bang_mau_vat_the"][ma_den] = mau_moi
-                        self.mau_index += 1
-                        data_tab["layer_visibility"][ma_den] = True
-                
-                self.switch_to_tab(self.active_tab_name)
+            has_symbols = any(len(d) > 0 for d in all_results.values() if isinstance(d, dict))
+            
+            if has_symbols:
+                self.log_to_terminal("ANNOTATION SYMBOLS DETECTED. Aligning matrices...", "success")
             else:
-                self.log_to_terminal("No target bounding boxes identified in target area.", "sys")
-        else:
-            self.log_to_terminal(f"SYSTEM DETECTOR EXCEPTION: {ket_qua}", "error")
+                self.log_to_terminal("No target bounding boxes identified.", "sys")
+            
+            if "markers" not in data_tab: data_tab["markers"] = {}
+            
+            for p, data_dem in all_results.items():
+                if isinstance(data_dem, dict) and data_dem:
+                    page = data_tab["pdf_doc"].load_page(p)
+                    goc_xoay = page.rotation
+                    
+                    if goc_xoay != 0:
+                        w_goc = page.rect.width if goc_xoay in [0, 180] else page.rect.height
+                        h_goc = page.rect.height if goc_xoay in [0, 180] else page.rect.width
+                        
+                        for ma_den, thong_tin in data_dem.items():
+                            toa_do_da_xoay = []
+                            for box in thong_tin["toa_do"]:
+                                x0, y0, x1, y1 = box[0], box[1], box[2], box[3]
+                                if goc_xoay == 90:
+                                    nx0, ny0, nx1, ny1 = h_goc - y1, x0, h_goc - y0, x1
+                                elif goc_xoay == 180:
+                                    nx0, ny0, nx1, ny1 = w_goc - x1, h_goc - y1, w_goc - x0, h_goc - y0
+                                elif goc_xoay == 270:
+                                    nx0, ny0, nx1, ny1 = y0, w_goc - x1, y1, w_goc - x0
+                                else:
+                                    nx0, ny0, nx1, ny1 = x0, y0, x1, y1
+                                toa_do_da_xoay.append([min(nx0, nx1), min(ny0, ny1), max(nx0, nx1), max(ny0, ny1)])
+                            thong_tin["toa_do"] = toa_do_da_xoay
 
+                    data_tab["markers"][p] = data_dem
+                    
+                    for ma_den in data_dem.keys():
+                        if ma_den not in data_tab["bang_mau_vat_the"]:
+                            mau_moi = self.danh_sach_mau[self.mau_index % len(self.danh_sach_mau)]
+                            data_tab["bang_mau_vat_the"][ma_den] = mau_moi
+                            self.mau_index += 1
+                            data_tab["layer_visibility"][ma_den] = True
+                else:
+                    data_tab["markers"][p] = {}
+            
+            # Tải lại Layer List của trang hiện tại và Render
+            self.build_layer_manager_for_current_page() 
+            self.render_page(self.active_tab_name)
+        else:
+            self.log_to_terminal(f"SYSTEM EXCEPTION: {all_results}", "error")
+            
     # ==========================================
     # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (SCALE AI TECHNICAL HUD IDLE)
     # ==========================================
@@ -1429,64 +1578,105 @@ class PromaEnterpriseApp(ctk.CTk):
     # ==========================================
     # KHU VỰC 6: XUẤT BẢN VẼ (SCALE AI PRECISION EXPORT)
     # ==========================================
+    # ==========================================
+    # KHU VỰC 6: XUẤT BẢN VẼ (RAM-BASED EXPORT & SCOPING)
+    # ==========================================
     def export_markup_pdf(self):
         if not self.active_tab_name:
             self.log_to_terminal("ERROR: Có bản vẽ nào đâu mà xuất sếp ơi!", "error")
             return
             
         data_tab = self.tabs[self.active_tab_name]
-        duong_dan_goc = data_tab["pdf_doc"].name
         
-        file_luu = fd.asksaveasfilename(
-            title="Select Output Directory for Annotation PDF", defaultextension=".pdf",
-            filetypes=[("PDF Files", "*.pdf")], initialfile=f"Takeoff_Export_{self.active_tab_name}"
-        )
-        if not file_luu:
-            self.log_to_terminal("Export procedure canceled.", "sys")
-            return
-            
-        self.log_to_terminal("Generating PDF document with burned-in annotations... PLEASE WAIT!", "action")
-        
-        markers_data = data_tab.get("markers", {}) 
-        bang_mau = data_tab.get("bang_mau_vat_the", {})
-        visibility = data_tab.get("layer_visibility", {})
-        scales = data_tab.get("layer_scale", {})
-        tables_data = data_tab.get("tables", {})
-        is_mono = data_tab.get("is_monochrome", False)
-        
-        goc_xoay = {i: data_tab["pdf_doc"].load_page(i).rotation for i in range(data_tab["pdf_doc"].page_count)}
-        
-        threading.Thread(
-            target=self._thread_export_pdf, 
-            args=(duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay, tables_data, is_mono), 
-            daemon=True
-        ).start()
+        # 🚀 HUD POPUP: HỎI XUẤT 1 TRANG HAY TOÀN BỘ PROJECT
+        popup = ctk.CTkToplevel(self)
+        popup.title("EXPORT SCOPE // PROMA")
+        popup.geometry("480x220")
+        popup.attributes("-topmost", True)
+        popup.configure(fg_color=BG_DARK)
 
-    def _thread_export_pdf(self, duong_dan_goc, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay, tables_data, is_mono):
+        ctk.CTkLabel(popup, text="// SELECT EXPORT RANGE", font=("Consolas", 15, "bold"), text_color=ACCENT_MAIN).pack(pady=(25, 10))
+        ctk.CTkLabel(popup, text="Export the entire project document or only the current active page?", font=("Consolas", 11), text_color=TEXT_MUTED).pack(pady=(0, 15))
+
+        btn_frame = ctk.CTkFrame(popup, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=10)
+
+        def do_export(scope):
+            popup.destroy()
+            file_luu = fd.asksaveasfilename(
+                title="Select Output Directory for Annotation PDF", defaultextension=".pdf",
+                filetypes=[("PDF Files", "*.pdf")], initialfile=f"Takeoff_Export_{self.active_tab_name}"
+            )
+            if not file_luu:
+                self.log_to_terminal("Export procedure canceled.", "sys")
+                return
+                
+            self.log_to_terminal(f"Generating PDF ({scope} MODE) with burned-in annotations... PLEASE WAIT!", "action")
+            
+            markers_data = data_tab.get("markers", {}) 
+            bang_mau = data_tab.get("bang_mau_vat_the", {})
+            visibility = data_tab.get("layer_visibility", {})
+            scales = data_tab.get("layer_scale", {})
+            tables_data = data_tab.get("tables", {})
+            is_mono = data_tab.get("is_monochrome", False)
+            current_page_idx = data_tab["current_page"]
+            
+            goc_xoay = {i: data_tab["pdf_doc"].load_page(i).rotation for i in range(data_tab["pdf_doc"].page_count)}
+            
+            # 🚀 Lõi RAM: Bóc toàn bộ bản vẽ hiện tại thành Bytes (bao gồm cả các trang đã Nối)
+            pdf_bytes = data_tab["pdf_doc"].tobytes()
+            
+            threading.Thread(
+                target=self._thread_export_pdf, 
+                args=(pdf_bytes, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay, tables_data, is_mono, scope, current_page_idx), 
+                daemon=True
+            ).start()
+
+        ctk.CTkButton(
+            btn_frame, text="[ CURRENT PAGE ONLY ]", height=42, corner_radius=4, 
+            font=("Consolas", 12, "bold"), fg_color=PANEL_BG, hover_color=TAB_HOVER, 
+            border_width=1, border_color=ACCENT_MAIN, text_color=ACCENT_MAIN, 
+            command=lambda: do_export("CURRENT")
+        ).pack(side="left", expand=True, fill="x", padx=6)
+        
+        ctk.CTkButton(
+            btn_frame, text="[ ALL PROJECT PAGES ]", height=42, corner_radius=4, 
+            font=("Consolas", 12, "bold"), fg_color=ACCENT_MAIN, hover_color=ACCENT_HOVER, 
+            text_color=BG_DARK, border_width=1, border_color="#E6A86E", 
+            command=lambda: do_export("ALL")
+        ).pack(side="right", expand=True, fill="x", padx=6)
+
+    def _thread_export_pdf(self, pdf_bytes, file_luu, markers_data, bang_mau, visibility, scales, goc_xoay, tables_data, is_mono, scope, current_page_idx):
         try:
             import fitz
-            pdf_copy = fitz.open(duong_dan_goc)
+            # 🚀 Mở bộ nhớ đệm thành PDF thay vì mở file từ ổ cứng
+            pdf_copy = fitz.open("pdf", pdf_bytes)
             tong_o_ve = 0
             tong_bang_ve = 0
+
+            # 🚀 Thuật toán Tỉa Trang: Giữ hết hay cắt gọt chừa đúng 1 trang?
+            if scope == "CURRENT":
+                pdf_copy.select([current_page_idx]) # Lệnh chém bay toàn bộ các trang khác
+                trang_map = {current_page_idx: 0}   # Map trang đang xem thành trang 0 duy nhất
+            else:
+                trang_map = {i: i for i in range(pdf_copy.page_count)}
             
-            for i in range(pdf_copy.page_count):
-                p = pdf_copy.load_page(i)
-                if p.rotation != goc_xoay.get(i, 0):
-                    p.set_rotation(goc_xoay.get(i, 0))
-            
-            for trang_idx in range(pdf_copy.page_count):
-                page = pdf_copy.load_page(trang_idx)
+            for trang_cu, trang_moi in trang_map.items():
+                page = pdf_copy.load_page(trang_moi)
                 
+                if page.rotation != goc_xoay.get(trang_cu, 0):
+                    page.set_rotation(goc_xoay.get(trang_cu, 0))
+            
                 # BỘ LỌC MONOCHROME EXPORT
                 if is_mono:
                     mat_mono = fitz.Matrix(2.0, 2.0)
                     pix_mono = page.get_pixmap(matrix=mat_mono, colorspace=fitz.csGRAY)
-                    
                     rect_page = page.rect
                     page.clean_contents()
                     page.insert_image(rect_page, pixmap=pix_mono)
                 
-                layers = markers_data.get(trang_idx, {})
+                # Móc dữ liệu bằng ID Trang Cũ nhưng vẽ lên Trang Mới
+                layers = markers_data.get(trang_cu, {}) 
                 
                 # A. VẼ BOUNDING BOX MARKERS
                 for ma_den, thong_tin in layers.items():
@@ -1519,8 +1709,8 @@ class PromaEnterpriseApp(ctk.CTk):
                         shape.commit()
 
                 # B. VẼ BẢNG CHÚ THÍCH (SCALE AI TECHNICAL LEGEND TABLE)
-                if trang_idx in tables_data:
-                    tb = tables_data[trang_idx]
+                if trang_cu in tables_data:
+                    tb = tables_data[trang_cu]
                     tx = tb["x"] if isinstance(tb, dict) else tb[0]
                     ty = tb["y"] if isinstance(tb, dict) else tb[1]
                     t_scale = tb.get("scale", 1.0) if isinstance(tb, dict) else 1.0
