@@ -172,7 +172,7 @@ class PromaEnterpriseApp(ctk.CTk):
         self.grid_rowconfigure(0, weight=0) 
         self.grid_rowconfigure(1, weight=1) 
         self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=0) 
+        self.grid_columnconfigure(1, weight=0, minsize=350)
 
         # ==========================================
         # 🚀 TOP HUD TOOLBAR (PRECISION ZINC 800 BORDERS)
@@ -282,14 +282,14 @@ class PromaEnterpriseApp(ctk.CTk):
         self.canvas_area.pack(side="top", fill="both", expand=True)
 
         # --- RIGHT PANEL (SCALE AI ENGINE CONTROL) ---
-        self.right_panel = ctk.CTkFrame(self, width=330, corner_radius=0, fg_color=PANEL_BG)
+        self.right_panel = ctk.CTkFrame(self, width=350, corner_radius=0, fg_color=PANEL_BG)
         self.right_panel.grid(row=1, column=1, sticky="nsew")
         self.right_panel.grid_propagate(False)
 
         ctk.CTkLabel(
             self.right_panel, text="MODE", 
             font=("Consolas", 15, "bold"), text_color=ACCENT_MAIN
-        ).pack(anchor="w", padx=20, pady=(20, 6))
+        ).pack(anchor="w", padx=12, pady=(20, 6))
 
         self.mode_var = ctk.StringVar(value="Vật thể")
         self.mode_selector = ctk.CTkSegmentedButton(
@@ -297,12 +297,12 @@ class PromaEnterpriseApp(ctk.CTk):
             selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, 
             text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=4
         )
-        self.mode_selector.pack(fill="x", padx=20, pady=4)
+        self.mode_selector.pack(fill="x", padx=12, pady=3)
 
         ctk.CTkLabel(
             self.right_panel, text="REGION", 
             font=("Consolas", 15, "bold"), text_color=TEXT_MUTED
-        ).pack(anchor="w", padx=20, pady=(16, 6))
+        ).pack(anchor="w", padx=12, pady=(16, 6))
         
         self.area_mode_var = ctk.StringVar(value="Toàn bản vẽ")
         self.area_selector = ctk.CTkSegmentedButton(
@@ -310,7 +310,7 @@ class PromaEnterpriseApp(ctk.CTk):
             selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, 
             text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=4
         )
-        self.area_selector.pack(fill="x", padx=20, pady=(0, 12))
+        self.area_selector.pack(fill="x", padx=12, pady=(0, 12))
 
         self.btn_learn_legend = ctk.CTkButton(
             self.right_panel, text="[ 📖 Learn Symbols ]", height=38, corner_radius=4, 
@@ -318,7 +318,7 @@ class PromaEnterpriseApp(ctk.CTk):
             text_color=ACCENT_MAIN, border_width=1, border_color=ACCENT_MAIN,
             command=self.train_legend_action
         )
-        self.btn_learn_legend.pack(fill="x", padx=20, pady=(4, 6))
+        self.btn_learn_legend.pack(fill="x", padx=12, pady=(4, 6))
 
         self.btn_run = ctk.CTkButton(
             self.right_panel, text="BREAK GROUND", height=46, corner_radius=4, 
@@ -327,7 +327,7 @@ class PromaEnterpriseApp(ctk.CTk):
             border_width=1, border_color="#E6A86E",
             command=self.run_engine
         )
-        self.btn_run.pack(fill="x", padx=20, pady=(8, 16))
+        self.btn_run.pack(fill="x", padx=12, pady=(8, 16))
         
         self.master_switch_var = ctk.BooleanVar(value=True)
         self.master_switch = ctk.CTkSwitch(
@@ -335,25 +335,25 @@ class PromaEnterpriseApp(ctk.CTk):
             text_color=TEXT_MAIN, progress_color=ACCENT_MAIN, 
             variable=self.master_switch_var, command=self.toggle_all_layers
         )
-        self.master_switch.pack(anchor="w", padx=20, pady=(0, 10))
+        self.master_switch.pack(anchor="w", padx=12, pady=(0, 10))
 
         self.layer_frame = ctk.CTkScrollableFrame(
             self.right_panel, fg_color=BG_DARK, height=340, 
             corner_radius=4, border_width=1, border_color=PANEL_BORDER
         )
-        self.layer_frame.pack(fill="x", padx=20, pady=(0, 16))
+        self.layer_frame.pack(fill="x", padx=12, pady=(0, 16))
 
         ctk.CTkLabel(
             self.right_panel, text="// TELEMETRY CLI LOG", 
             font=("Consolas", 11, "bold"), text_color=TEXT_MUTED
-        ).pack(anchor="w", padx=20, pady=(0, 6))
+        ).pack(anchor="w", padx=12, pady=(0, 6))
         
         self.txt_log = ctk.CTkTextbox(
             self.right_panel, fg_color=BG_DARK, text_color=TEXT_MAIN, 
             font=("Consolas", 11), corner_radius=4, height=115,
             border_width=1, border_color=PANEL_BORDER
         )
-        self.txt_log.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.txt_log.pack(fill="both", expand=True, padx=12, pady=(0, 20))
         self.txt_log.configure(state="disabled")
 
         self.txt_log._textbox.tag_configure("sys", foreground=TEXT_MUTED)
@@ -374,25 +374,31 @@ class PromaEnterpriseApp(ctk.CTk):
         self.log_to_terminal("SCALE AI ANNOTATION ENGINE INITIALIZED.", "sys")
 
     # ==========================================
-    # KHU VỰC 3: LAYER MANAGER ROWS
+    # KHU VỰC 3: LAYER MANAGER ROWS (SPOTIFY DRAG & DROP UI)
     # ==========================================
-
-    # 🚀 HÀM MỚI: CHỈ HIỆN LAYER CỦA TRANG HIỆN TẠI
     def build_layer_manager_for_current_page(self):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
-        # Dọn sạch Panel rác của trang cũ
         for child in self.layer_frame.winfo_children():
             child.destroy()
             
         data["layer_switches"] = {}
+        data["layer_labels"] = {} # 🚀 Tách riêng Label để quản lý tên dài
+        data["layer_row_widgets"] = [] 
         
         trang_idx = data["current_page"]
         markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
         
-        # Chỉ lôi ra những mã CÓ MẶT trên trang hiện tại
-        for ma_den in sorted(markers_trang_nay.keys()):
+        active_keys = set(markers_trang_nay.keys())
+        if "layer_order" not in data: data["layer_order"] = []
+        
+        data["layer_order"] = [k for k in data["layer_order"] if k in active_keys]
+        for k in sorted(active_keys):
+            if k not in data["layer_order"]:
+                data["layer_order"].append(k)
+        
+        for ma_den in data["layer_order"]:
             mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
             so_l = markers_trang_nay[ma_den].get("so_luong", 0)
             self.add_layer_toggle_ui(ma_den, mau_sac, so_l)
@@ -401,45 +407,118 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
 
-        row = ctk.CTkFrame(self.layer_frame, fg_color="transparent")
-        row.pack(fill="x", pady=3)
+        # 🚀 Ép chiều cao cố định để kéo thả mượt
+        row = ctk.CTkFrame(self.layer_frame, fg_color="transparent", height=28)
+        row.pack(fill="x", pady=2)
+        row.pack_propagate(False) 
         
-        color_box = ctk.CTkButton(
-            row, text="", width=16, height=16, corner_radius=2, 
-            fg_color=mau_sac, hover_color=mau_sac, cursor="hand2"
-        )
-        color_box.pack(side="left", padx=(6, 8))
+        data["layer_row_widgets"].append((ma_den, row))
+        
+        # 1. BÊN TRÁI: Chấm mờ `•` -> Box Màu -> Switch (Không Text)
+        # 🚀 Đổi con trỏ chuột thành 4 hướng (fleur) theo đúng lệnh sếp
+        drag_handle = ctk.CTkLabel(row, text="•", font=("Arial", 18, "bold"), text_color="#3F3F46", width=12, cursor="fleur")
+        drag_handle.pack(side="left", padx=(2, 4))
+        
+        # 🚀 Gắn bùa Lambda an toàn tuyệt đối
+        drag_handle.bind("<ButtonPress-1>", lambda e, m=ma_den, r=row: self.on_drag_layer_start(e, m, r))
+        drag_handle.bind("<B1-Motion>", lambda e: self.on_drag_layer_motion(e))
+        drag_handle.bind("<ButtonRelease-1>", lambda e: self.on_drag_layer_drop(e))
+
+        color_box = ctk.CTkButton(row, text="", width=14, height=14, corner_radius=2, fg_color=mau_sac, hover_color=mau_sac, cursor="hand2")
+        color_box.pack(side="left", padx=(0, 6))
         
         switch_var = ctk.BooleanVar(value=data["layer_visibility"].get(ma_den, True))
-        text_hien_thi = f"{ma_den} [{so_luong:02d}]"
+        # Switch thu nhỏ lại hết cỡ, VỨT BỎ TEXT
         switch = ctk.CTkSwitch(
-            row, text=text_hien_thi, font=("Consolas", 11, "bold"), 
-            text_color=TEXT_MAIN, progress_color=mau_sac,
-            variable=switch_var, command=lambda m=ma_den, v=switch_var: self.toggle_layer(m, v.get())
+            row, text="", width=26, switch_width=26, switch_height=14, 
+            progress_color=mau_sac, variable=switch_var, command=lambda m=ma_den, v=switch_var: self.toggle_layer(m, v.get())
         )
-        switch.pack(side="left", fill="x", expand=True)
-
+        switch.pack(side="left", padx=(0, 4))
         data["layer_switches"][ma_den] = switch
 
+        # 2. BÊN PHẢI ĐÓNG ĐINH: Slider -> Nút X
         btn_delete = ctk.CTkButton(
-            row, text="×", width=20, height=20, corner_radius=4, 
+            row, text="×", width=18, height=18, corner_radius=4, 
             fg_color="transparent", text_color=TEXT_MUTED, hover_color=CLOSE_BTN_HOVER, font=("Consolas", 14, "bold"),
             command=lambda m=ma_den, r=row: self.delete_layer(m, r)
         )
-        btn_delete.pack(side="right", padx=(4, 6))
+        btn_delete.pack(side="right", padx=(2, 4))
 
         scale_val = data.setdefault("layer_scale", {}).setdefault(ma_den, 1.0)
+        # Slider ép nhỏ lại còn 45px
         slider = ctk.CTkSlider(
-            row, width=60, height=12, from_=1.0, to=5.0, 
-            button_color=mau_sac, progress_color=mau_sac,
-            command=lambda v, m=ma_den: self.change_layer_scale(m, v)
+            row, width=45, height=10, from_=1.0, to=5.0, 
+            button_color=mau_sac, progress_color=mau_sac, command=lambda v, m=ma_den: self.change_layer_scale(m, v)
         )
         slider.set(scale_val)
-        slider.pack(side="right", padx=(4, 0))
+        slider.pack(side="right", padx=(2, 4))
 
+        # 3. Ở GIỮA CHIẾM TRỌN KHÔNG GIAN: Text Label
+        # Thằng này nằm giữa, sẽ húp trọn 100% phần khoảng trống còn lại, đéo bao giờ bị che!
+        text_hien_thi = f"{ma_den} [{so_luong:02d}]"
+        lbl_name = ctk.CTkLabel(row, text=text_hien_thi, font=("Consolas", 11, "bold"), text_color=TEXT_MAIN, anchor="w")
+        lbl_name.pack(side="left", fill="x", expand=True)
+        
+        data["layer_labels"][ma_den] = lbl_name
+        
         color_box.configure(command=lambda m=ma_den, cb=color_box, sw=switch, sl=slider: self.change_layer_color(m, cb, sw, sl))
-        switch._text_label.bind("<Double-Button-1>", lambda e, m=ma_den: self.rename_layer_action(m))
-        switch._text_label.configure(cursor="xterm")
+        lbl_name.bind("<Double-Button-1>", lambda e, m=ma_den: self.rename_layer_action(m))
+        lbl_name.configure(cursor="xterm")
+    
+    # 🚀 THUẬT TOÁN KÉO THẢ MƯỢT NHƯ SPOTIFY (REAL-TIME UI SWAP 60FPS)
+    def on_drag_layer_start(self, event, ma_den, row_widget):
+        self.drag_data = {"ma": ma_den, "widget": row_widget}
+        # Đang nắm kéo -> Dòng phát sáng lềnh bềnh (Highlight)
+        row_widget.configure(fg_color="#27272A") 
+        self.log_to_terminal(f"↕ Reordering layer [{ma_den}]...", "sys")
+
+    def on_drag_layer_motion(self, event):
+        if getattr(self, 'drag_data', None) is None: return
+        
+        y_mouse = event.y_root # Tọa độ chuột tuyệt đối trên màn hình
+        data = self.tabs[self.active_tab_name]
+        
+        target_ma = None
+        # Quét lướt qua xem chuột đang đè lên đầu thằng nào
+        for m, w in data.get("layer_row_widgets", []):
+            if m == self.drag_data["ma"]: continue
+            wy = w.winfo_rooty()
+            wh = w.winfo_height()
+            # Bắt vị trí theo tọa độ Y
+            if wy <= y_mouse <= wy + wh:
+                target_ma = m
+                break
+        
+        # Lướt qua thằng mới -> Hoán đổi vị trí NGAY LẬP TỨC
+        if target_ma:
+            order = data["layer_order"]
+            idx1 = order.index(self.drag_data["ma"])
+            idx2 = order.index(target_ma)
+            
+            if idx1 != idx2:
+                # 1. Đổi vị trí trong não AI
+                order.insert(idx2, order.pop(idx1))
+                
+                # 2. Pack lại UI theo thứ tự mới cực tốc độ
+                widget_dict = {m: w for m, w in data["layer_row_widgets"]}
+                for m in order:
+                    if m in widget_dict:
+                        widget_dict[m].pack_forget()
+                        widget_dict[m].pack(fill="x", pady=2)
+                
+                # 3. 🚀 LỆNH SINH TỬ: Ép toàn bộ App vẽ lại lập tức ở 60FPS chống lag
+                self.update_idletasks()
+
+    def on_drag_layer_drop(self, event):
+        if getattr(self, 'drag_data', None) is None: return
+        
+        # Thả chuột -> Tắt đèn phát sáng
+        self.drag_data["widget"].configure(fg_color="transparent")
+        self.drag_data = None
+        
+        # Chốt sổ -> Vẽ lại bảng Legend trên bản vẽ PDF
+        self.render_page(self.active_tab_name, redraw_pdf=False)
+        self.log_to_terminal("✅ Layer order updated.", "success")
 
     def change_layer_color(self, ma_den, color_box, switch, slider=None):
         if not self.active_tab_name: return
@@ -519,6 +598,10 @@ class PromaEnterpriseApp(ctk.CTk):
         if ma_cu in data["layer_scale"]:
             data["layer_scale"][ma_moi] = data["layer_scale"].pop(ma_cu)
 
+        if ma_cu in data.get("layer_order", []):
+            idx = data["layer_order"].index(ma_cu)
+            data["layer_order"][idx] = ma_moi
+
         for trang_idx, markers_trang in data.get("markers", {}).items():
             if ma_cu in markers_trang:
                 markers_trang[ma_moi] = markers_trang.pop(ma_cu)
@@ -535,13 +618,17 @@ class PromaEnterpriseApp(ctk.CTk):
         trang_idx = data["current_page"]
         markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
         
-        for ma_den, switch in data["layer_switches"].items():
-            switch.configure(text=f"{ma_den} [00]")
-            
+        # Reset toàn bộ về 0
+        if "layer_labels" in data:
+            for ma_den, lbl in data["layer_labels"].items():
+                lbl.configure(text=f"{ma_den} [00]")
+                
+        # Cập nhật số đếm thực tế
         for ma_den, thong_tin in markers_trang_nay.items():
-            if ma_den in data["layer_switches"]:
-                switch = data["layer_switches"][ma_den]
-                switch.configure(text=f"{ma_den} [{thong_tin['so_luong']:02d}]")
+            if "layer_labels" in data and ma_den in data["layer_labels"]:
+                lbl = data["layer_labels"][ma_den]
+                lbl.configure(text=f"{ma_den} [{thong_tin['so_luong']:02d}]")
+
 # ==========================================
     # KHU VỰC 3 (TIẾP THEO): QUẢN LÝ TAB BẢN VẼ
     # ==========================================
@@ -616,7 +703,9 @@ class PromaEnterpriseApp(ctk.CTk):
             "bang_mau_vat_the": {},    
             "layer_visibility": {},    
             "layer_switches": {},
-            "layer_scale": {},      
+            "layer_scale": {},    
+            "layer_order": [],         # 🚀 LƯU THỨ TỰ LÊN XUỐNG CỦA SẾP
+            "layer_row_widgets": [],  
             "canvas": canvas,
             "canvas_container": canvas_container,
             "tab_ui": tab_ui,
@@ -761,7 +850,10 @@ class PromaEnterpriseApp(ctk.CTk):
             
             w_table = 230 * zoom * t_scale
             row_h = 24 * zoom * t_scale
-            danh_sach_ma = sorted(data["bang_mau_vat_the"].keys())
+            # Lấy đúng danh sách theo thứ tự sếp đã kéo thả trên Panel!
+            active_keys = set(markers_trang_nay.keys())
+            danh_sach_ma = [k for k in data.get("layer_order", []) if k in active_keys]
+            if not danh_sach_ma: danh_sach_ma = sorted(active_keys) # Chống cháy nếu chưa kéo
             h_table = max((len(danh_sach_ma) + 1.8) * row_h, 60 * zoom * t_scale)
             
             # Khung nền Obsidian Zinc chuẩn Scale AI
@@ -1268,7 +1360,7 @@ class PromaEnterpriseApp(ctk.CTk):
             self.render_page(self.active_tab_name)
         else:
             self.log_to_terminal(f"SYSTEM EXCEPTION: {all_results}", "error")
-            
+
     # ==========================================
     # 🚀 TRẠNG THÁI NGHỈ CỦA TOUCH BAR (SCALE AI TECHNICAL HUD IDLE)
     # ==========================================
@@ -1715,7 +1807,11 @@ class PromaEnterpriseApp(ctk.CTk):
                     ty = tb["y"] if isinstance(tb, dict) else tb[1]
                     t_scale = tb.get("scale", 1.0) if isinstance(tb, dict) else 1.0
                     
-                    danh_sach_ma = sorted(bang_mau.keys())
+                    # 🚀 Lấy đúng thứ tự kéo thả để in ra PDF
+                    data_tab = self.tabs[self.active_tab_name]
+                    active_keys = set(layers.keys())
+                    danh_sach_ma = [k for k in data_tab.get("layer_order", []) if k in active_keys]
+                    if not danh_sach_ma: danh_sach_ma = sorted(active_keys)
                     w_table = 180.0 * t_scale
                     row_h = 18.0 * t_scale
                     h_table = max((len(danh_sach_ma) + 1.8) * row_h, 45.0 * t_scale)
