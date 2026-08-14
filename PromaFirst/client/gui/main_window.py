@@ -752,59 +752,69 @@ class PromaEnterpriseApp(ctk.CTk):
         data = self.tabs.get(tab_name)
         if not data: return
 
+        # 🚀 Ép vẽ lại PDF (burn-in) trong mọi trường hợp để in mộc lên bản vẽ, 
+        # TRỪ KHI sếp đang nắm kéo thả Bảng chú thích thì tắt đi để chống lag.
+        if redraw_pdf is False and not (data.get("dragging_table") or data.get("resizing_table")):
+            redraw_pdf = True
+
         canvas = data["canvas"]
         pos_x, pos_y = data["img_pos"]
         zoom = data["zoom_level"]
 
-        # 1. RENDER NỀN PDF & CẬP NHẬT LAYER COUNTS
+        # ==========================================
+        # 1. RENDER NỀN PDF & ĐÓNG MỘC MARKER DÍNH CHẾT LÊN BẢN VẼ (BURN-IN)
+        # ==========================================
         if redraw_pdf:
             page = data["pdf_doc"].load_page(data["current_page"])
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat)
             
+            from PIL import Image, ImageDraw
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 
             if data.get("is_monochrome", False):
                 img = img.convert("L").convert("RGB")
 
+            # 🚀 LẤY BÚT VẼ TRỰC TIẾP LÊN MẶT GIẤY PDF
+            draw = ImageDraw.Draw(img, "RGBA")
+            trang_idx = data["current_page"]
+            markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
+            
+            for ma_den, thong_tin in markers_trang_nay.items():
+                if not data["layer_visibility"].get(ma_den, True): continue
+                mau_hex = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
+                scale = data.get("layer_scale", {}).get(ma_den, 1.0) 
+                
+                for box in thong_tin["toa_do"]:
+                    # Tọa độ nội bộ của ảnh (đã nhân zoom)
+                    ix0, iy0, ix1, iy1 = box[0]*zoom, box[1]*zoom, box[2]*zoom, box[3]*zoom
+                    
+                    cx, cy = (ix0 + ix1) / 2, (iy0 + iy1) / 2
+                    canh_vuong = 15.0 * zoom * scale
+                    
+                    nx0 = cx - canh_vuong / 2
+                    ny0 = cy - canh_vuong / 2
+                    nx1 = cx + canh_vuong / 2
+                    ny1 = cy + canh_vuong / 2
+                    
+                    draw.rectangle([nx0, ny0, nx1, ny1], outline=mau_hex, width=3)
+
+            # Khóa ảnh lại ném ra màn hình
             data["current_img"] = ImageTk.PhotoImage(img) 
             
             canvas.delete("pdf_background")
+            # 🚀 Bức ảnh bây giờ đã gánh trên lưng cả ngàn nét vẽ, kéo 1 là đi tất cả!
             canvas.create_image(pos_x, pos_y, anchor="nw", image=data["current_img"], tags=("pdf_img", "pdf_background"))
             self.update_layer_manager_counts()
 
-        # 2. VẼ MARKERS
+        # 2. XÓA MARKER RÁC TRÊN CANVAS (Tiễn hệ thống vẽ rời ra chuồng gà)
         canvas.delete("marker") 
-        trang_idx = data["current_page"]
-        markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
-        
-        for ma_den, thong_tin in markers_trang_nay.items():
-            if not data["layer_visibility"].get(ma_den, True): continue
-                
-            mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
-            scale = data.get("layer_scale", {}).get(ma_den, 1.0) 
-            
-            for box in thong_tin["toa_do"]:
-                x0 = pos_x + box[0] * zoom
-                y0 = pos_y + box[1] * zoom
-                x1 = pos_x + box[2] * zoom
-                y1 = pos_y + box[3] * zoom
-                
-                cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-                canh_vuong = 15.0 * zoom * scale
-                
-                x0_moi = cx - canh_vuong / 2
-                y0_moi = cy - canh_vuong / 2
-                x1_moi = cx + canh_vuong / 2
-                y1_moi = cy + canh_vuong / 2
-                
-                canvas.create_rectangle(
-                    x0_moi, y0_moi, x1_moi, y1_moi, 
-                    outline=mau_sac, width=3, tags=("pdf_img", "marker")
-                )
 
-        # 3. VẼ BẢNG CHÚ THÍCH & NÚT RESIZE
+        # ==========================================
+        # 3. VẼ BẢNG CHÚ THÍCH & NÚT RESIZE (Giữ nguyên trên Canvas để nắm kéo được)
+        # ==========================================
         canvas.delete("table_legend")
+        trang_idx = data["current_page"]
         if "tables" in data and trang_idx in data["tables"]:
             tb = data["tables"][trang_idx]
             
@@ -818,6 +828,8 @@ class PromaEnterpriseApp(ctk.CTk):
             
             w_table = 230 * zoom * t_scale
             row_h = 24 * zoom * t_scale
+            
+            markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
             active_keys = set(markers_trang_nay.keys())
             danh_sach_ma = [k for k in data.get("layer_order", []) if k in active_keys]
             if not danh_sach_ma: danh_sach_ma = sorted(active_keys) 
@@ -840,7 +852,7 @@ class PromaEnterpriseApp(ctk.CTk):
             
             for idx, ma_den in enumerate(danh_sach_ma):
                 y_row = ty + (idx + 1.9) * row_h
-                mau_sac = data["bang_mau_vat_the"][ma_den]
+                mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
                 so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
                 
                 canvas.create_rectangle(
@@ -869,6 +881,13 @@ class PromaEnterpriseApp(ctk.CTk):
                 hx - hw + 3, hy - 3, hx - 3, hy - hw + 3, 
                 fill="#120C08", width=1.5, tags=("pdf_img", "table_legend")
             )
+
+        # ==========================================
+        # 🚀 BÙA ÉP THỨ TỰ Z-ORDER TUYỆT ĐỐI 
+        # ==========================================
+        canvas.tag_lower("pdf_background")  # Ép hình PDF lặn xuống tận đáy
+        canvas.tag_lower("grid")            # Ép lưới lặn xuống tận đáy cùng
+        canvas.tag_raise("table_legend")    # Kéo Bảng chú thích lên trên cùng tuyệt đối
 
     # ==========================================
     # KHU VỰC 4: TƯƠNG TÁC CHUỘT
