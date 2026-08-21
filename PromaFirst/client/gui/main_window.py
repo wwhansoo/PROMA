@@ -298,7 +298,8 @@ class PromaEnterpriseApp(ctk.CTk):
         self.area_selector = ctk.CTkSegmentedButton(
             self.right_panel, values=["Toàn bản vẽ", "Kéo chọn vùng"], variable=self.area_mode_var,
             selected_color=ACCENT_MAIN, selected_hover_color=ACCENT_HOVER, unselected_color=BG_DARK, 
-            text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=8
+            text_color=TEXT_MAIN, font=("Montserrat Bold", 11, "bold"), corner_radius=8,
+            command=self.on_area_mode_change  # 🚀 BÙA: GẮN DÂY THẦN KINH DỌN RÁC
         )
         self.area_selector.pack(fill="x", padx=16, pady=(0, 14))
 
@@ -363,6 +364,26 @@ class PromaEnterpriseApp(ctk.CTk):
         self.lbl_zoom.pack(side="right", padx=16)
 
         self.log_to_terminal("PROMA Enterprise Core Initialized.", "sys")
+    
+    # ==========================================
+    # 🚀 HÀM DỌN RÁC KHI ĐỔI CHẾ ĐỘ QUÉT
+    # ==========================================
+    def on_area_mode_change(self, new_mode):
+        if not self.active_tab_name: return
+        data = self.tabs[self.active_tab_name]
+        
+        if new_mode == "Toàn bản vẽ":
+            # Gạt về Toàn bản vẽ -> Xóa ngay nét đứt và hủy dữ liệu vùng chọn
+            if data.get("rect_id"):
+                data["canvas"].delete(data["rect_id"])
+                data["rect_id"] = None
+            data["vung_chon_pdf"] = None
+            data["canvas"].config(cursor="")
+            self.log_to_terminal("Đã hủy chế độ Kéo Vùng. Trở về quét toàn bản vẽ.", "sys")
+        else:
+            # Gạt sang Kéo chọn vùng -> Đổi con trỏ chuột thành hình dấu cộng
+            data["canvas"].config(cursor="crosshair")
+            self.log_to_terminal("Chế độ chọn vùng: Kéo chuột để khoanh vùng đếm.", "action")
 
     # ==========================================
     # KHU VỰC 3: LAYER MANAGER ROWS (APPLE DRAG & DROP UI)
@@ -539,17 +560,31 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
+        # 1. Dọn dẹp sạch Data gốc
         if ma_den in data["bang_mau_vat_the"]: del data["bang_mau_vat_the"][ma_den]
         if ma_den in data["layer_visibility"]: del data["layer_visibility"][ma_den]
         if ma_den in data["layer_switches"]: del data["layer_switches"][ma_den]
         if ma_den in data["layer_scale"]: del data["layer_scale"][ma_den]
         
+        # 🚀 2. DỌN SẠCH XÁC TRONG KHO UI ĐỂ CHỐNG CRASH NGẦM!
+        if "layer_labels" in data and ma_den in data["layer_labels"]:
+            del data["layer_labels"][ma_den]
+            
+        if "layer_row_widgets" in data:
+            data["layer_row_widgets"] = [(m, w) for m, w in data["layer_row_widgets"] if m != ma_den]
+        
+        if ma_den in data.get("layer_order", []): 
+            data["layer_order"].remove(ma_den)
+            
         trang_idx = data["current_page"]
         if trang_idx in data.get("markers", {}) and ma_den in data["markers"][trang_idx]:
             del data["markers"][trang_idx][ma_den]
             
+        # 3. Tiêu hủy giao diện
         row_widget.destroy()
-        self.render_page(self.active_tab_name, redraw_pdf=False)
+        
+        # 4. Giờ thì render tẹt ga, luồng code chạy thông suốt từ trên xuống dưới
+        self.render_page(self.active_tab_name, redraw_pdf=True)
         self.log_to_terminal(f"Đã gỡ mã '{ma_den}' khỏi bản vẽ.", "error")
     
     def rename_layer_action(self, ma_cu):
@@ -752,8 +787,6 @@ class PromaEnterpriseApp(ctk.CTk):
         data = self.tabs.get(tab_name)
         if not data: return
 
-        # 🚀 Ép vẽ lại PDF (burn-in) trong mọi trường hợp để in mộc lên bản vẽ, 
-        # TRỪ KHI sếp đang nắm kéo thả Bảng chú thích thì tắt đi để chống lag.
         if redraw_pdf is False and not (data.get("dragging_table") or data.get("resizing_table")):
             redraw_pdf = True
 
@@ -761,9 +794,6 @@ class PromaEnterpriseApp(ctk.CTk):
         pos_x, pos_y = data["img_pos"]
         zoom = data["zoom_level"]
 
-        # ==========================================
-        # 1. RENDER NỀN PDF & ĐÓNG MỘC MARKER DÍNH CHẾT LÊN BẢN VẼ (BURN-IN)
-        # ==========================================
         if redraw_pdf:
             page = data["pdf_doc"].load_page(data["current_page"])
             mat = fitz.Matrix(zoom, zoom)
@@ -775,7 +805,6 @@ class PromaEnterpriseApp(ctk.CTk):
             if data.get("is_monochrome", False):
                 img = img.convert("L").convert("RGB")
 
-            # 🚀 LẤY BÚT VẼ TRỰC TIẾP LÊN MẶT GIẤY PDF
             draw = ImageDraw.Draw(img, "RGBA")
             trang_idx = data["current_page"]
             markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
@@ -786,111 +815,105 @@ class PromaEnterpriseApp(ctk.CTk):
                 scale = data.get("layer_scale", {}).get(ma_den, 1.0) 
                 
                 for box in thong_tin["toa_do"]:
-                    # Tọa độ nội bộ của ảnh (đã nhân zoom)
                     ix0, iy0, ix1, iy1 = box[0]*zoom, box[1]*zoom, box[2]*zoom, box[3]*zoom
-                    
                     cx, cy = (ix0 + ix1) / 2, (iy0 + iy1) / 2
                     canh_vuong = 15.0 * zoom * scale
-                    
-                    nx0 = cx - canh_vuong / 2
-                    ny0 = cy - canh_vuong / 2
-                    nx1 = cx + canh_vuong / 2
-                    ny1 = cy + canh_vuong / 2
-                    
+                    nx0, ny0 = cx - canh_vuong / 2, cy - canh_vuong / 2
+                    nx1, ny1 = cx + canh_vuong / 2, cy + canh_vuong / 2
                     draw.rectangle([nx0, ny0, nx1, ny1], outline=mau_hex, width=3)
 
-            # Khóa ảnh lại ném ra màn hình
             data["current_img"] = ImageTk.PhotoImage(img) 
             
-            canvas.delete("pdf_background")
-            # 🚀 Bức ảnh bây giờ đã gánh trên lưng cả ngàn nét vẽ, kéo 1 là đi tất cả!
-            canvas.create_image(pos_x, pos_y, anchor="nw", image=data["current_img"], tags=("pdf_img", "pdf_background"))
+            # 🚀 FIX CHÍ MẠNG: UPDATE IN-PLACE (THAY RUỘT KHÔNG ĐỔI VỎ)
+            # Khóa cứng Z-order, đéo cho Tkinter xóc bài Z-Index nữa!
+            if canvas.find_withtag("pdf_background"):
+                canvas.itemconfig("pdf_background", image=data["current_img"])
+                canvas.coords("pdf_background", pos_x, pos_y)
+            else:
+                canvas.create_image(pos_x, pos_y, anchor="nw", image=data["current_img"], tags="pdf_background")
+                
             self.update_layer_manager_counts()
 
-        # 2. XÓA MARKER RÁC TRÊN CANVAS (Tiễn hệ thống vẽ rời ra chuồng gà)
         canvas.delete("marker") 
-
-        # ==========================================
-        # 3. VẼ BẢNG CHÚ THÍCH & NÚT RESIZE (Giữ nguyên trên Canvas để nắm kéo được)
-        # ==========================================
-        canvas.delete("table_legend")
-        trang_idx = data["current_page"]
-        if "tables" in data and trang_idx in data["tables"]:
-            tb = data["tables"][trang_idx]
-            
-            if isinstance(tb, list):
-                tb = {"x": tb[0], "y": tb[1], "scale": 1.0}
-                data["tables"][trang_idx] = tb
-                
-            t_scale = tb.get("scale", 1.0)
-            tx = pos_x + tb["x"] * zoom
-            ty = pos_y + tb["y"] * zoom
-            
-            w_table = 230 * zoom * t_scale
-            row_h = 24 * zoom * t_scale
-            
-            markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
-            active_keys = set(markers_trang_nay.keys())
-            danh_sach_ma = [k for k in data.get("layer_order", []) if k in active_keys]
-            if not danh_sach_ma: danh_sach_ma = sorted(active_keys) 
-            h_table = max((len(danh_sach_ma) + 1.8) * row_h, 60 * zoom * t_scale)
-            
-            canvas.create_rectangle(
-                tx, ty, tx + w_table, ty + h_table, 
-                fill="#1C1510", outline="#B07D4C", width=2, tags=("pdf_img", "table_legend")
-            )
-            
-            canvas.create_text(
-                tx + w_table / 2, ty + row_h * 0.7, 
-                text="PROMA LEGEND // TOTAL", 
-                fill="#F5F2EB", font=("Montserrat Bold", int(11 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
-            )
-            canvas.create_line(
-                tx, ty + row_h * 1.3, tx + w_table, ty + row_h * 1.3, 
-                fill="#2E241C", width=1, tags=("pdf_img", "table_legend")
-            )
-            
-            for idx, ma_den in enumerate(danh_sach_ma):
-                y_row = ty + (idx + 1.9) * row_h
-                mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
-                so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
-                
-                canvas.create_rectangle(
-                    tx + 12 * zoom * t_scale, y_row - 6 * zoom * t_scale, 
-                    tx + 24 * zoom * t_scale, y_row + 6 * zoom * t_scale,
-                    fill=mau_sac, outline="#F5F2EB", width=1, tags=("pdf_img", "table_legend")
-                )
-                
-                canvas.create_text(
-                    tx + 34 * zoom * t_scale, y_row, text=str(ma_den), anchor="w",
-                    fill="#F5F2EB", font=("Consolas", int(11 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
-                )
-                
-                canvas.create_text(
-                    tx + w_table - 15 * zoom * t_scale, y_row, text=f"{so_l:02d}", anchor="e",
-                    fill="#B07D4C", font=("Consolas", int(12 * zoom * t_scale), "bold"), tags=("pdf_img", "table_legend")
-                )
-
-            hx, hy = tx + w_table, ty + h_table
-            hw = 10 * zoom
-            canvas.create_rectangle(
-                hx - hw, hy - hw, hx, hy,
-                fill="#B07D4C", outline="#F5F2EB", width=1, tags=("pdf_img", "table_legend")
-            )
-            canvas.create_line(
-                hx - hw + 3, hy - 3, hx - 3, hy - hw + 3, 
-                fill="#120C08", width=1.5, tags=("pdf_img", "table_legend")
-            )
-
-        # ==========================================
-        # 🚀 BÙA ÉP THỨ TỰ Z-ORDER TUYỆT ĐỐI 
-        # ==========================================
-        canvas.tag_lower("pdf_background")  # Ép hình PDF lặn xuống tận đáy
-        canvas.tag_lower("grid")            # Ép lưới lặn xuống tận đáy cùng
-        canvas.tag_raise("table_legend")    # Kéo Bảng chú thích lên trên cùng tuyệt đối
+        self.draw_table_legend(data)
 
     # ==========================================
-    # KHU VỰC 4: TƯƠNG TÁC CHUỘT
+    # 🚀 ENGINE VẼ BẢNG VÀ XỬ LÝ TỌA ĐỘ KỶ LUẬT THÉP
+    # ==========================================
+    def get_table_hitbox(self, data):
+        trang = data["current_page"]
+        if "tables" not in data or trang not in data["tables"]: return None
+        tb = data["tables"][trang]
+        tx = tb["x"] if isinstance(tb, dict) else tb[0]
+        ty = tb["y"] if isinstance(tb, dict) else tb[1]
+        t_scale = tb.get("scale", 1.0) if isinstance(tb, dict) else 1.0
+        
+        markers_trang_nay = data.get("markers", {}).get(trang, {})
+        active_keys = set(markers_trang_nay.keys())
+        danh_sach_ma = [k for k in data.get("layer_order", []) if k in active_keys]
+        if not danh_sach_ma: danh_sach_ma = sorted(active_keys) 
+        
+        w_tb = 230.0 * t_scale
+        h_tb = max((len(danh_sach_ma) + 1.8) * 24.0 * t_scale, 60.0 * t_scale)
+        return tx, ty, w_tb, h_tb
+
+    def draw_table_legend(self, data):
+        canvas = data["canvas"]
+        canvas.delete("table_legend")
+        
+        hitbox = self.get_table_hitbox(data)
+        if not hitbox: return
+        
+        tx_pdf, ty_pdf, w_tb, h_tb = hitbox
+        zoom = data["zoom_level"]
+        pos_x, pos_y = data["img_pos"]
+        
+        tx = pos_x + tx_pdf * zoom
+        ty = pos_y + ty_pdf * zoom
+        w_table = w_tb * zoom
+        h_table = h_tb * zoom
+        
+        trang_idx = data["current_page"]
+        t_scale = data["tables"][trang_idx].get("scale", 1.0) if isinstance(data["tables"][trang_idx], dict) else 1.0
+        row_h = 24 * zoom * t_scale
+        
+        markers_trang_nay = data.get("markers", {}).get(trang_idx, {})
+        active_keys = set(markers_trang_nay.keys())
+        danh_sach_ma = [k for k in data.get("layer_order", []) if k in active_keys]
+        if not danh_sach_ma: danh_sach_ma = sorted(active_keys) 
+        
+        canvas.create_rectangle(tx, ty, tx + w_table, ty + h_table, fill="#1C1510", outline="#B07D4C", width=2, tags="table_legend")
+        canvas.create_text(tx + w_table / 2, ty + row_h * 0.7, text="PROMA LEGEND // TOTAL", fill="#F5F2EB", font=("Montserrat Bold", int(11 * zoom * t_scale), "bold"), tags="table_legend")
+        canvas.create_line(tx, ty + row_h * 1.3, tx + w_table, ty + row_h * 1.3, fill="#2E241C", width=1, tags="table_legend")
+        
+        for idx, ma_den in enumerate(danh_sach_ma):
+            y_row = ty + (idx + 1.9) * row_h
+            mau_sac = data["bang_mau_vat_the"].get(ma_den, "#FFFFFF")
+            so_l = markers_trang_nay.get(ma_den, {}).get("so_luong", 0)
+            
+            canvas.create_rectangle(tx + 12 * zoom * t_scale, y_row - 6 * zoom * t_scale, tx + 24 * zoom * t_scale, y_row + 6 * zoom * t_scale, fill=mau_sac, outline="#F5F2EB", width=1, tags="table_legend")
+            canvas.create_text(tx + 34 * zoom * t_scale, y_row, text=str(ma_den), anchor="w", fill="#F5F2EB", font=("Consolas", int(11 * zoom * t_scale), "bold"), tags="table_legend")
+            canvas.create_text(tx + w_table - 15 * zoom * t_scale, y_row, text=f"{so_l:02d}", anchor="e", fill="#B07D4C", font=("Consolas", int(12 * zoom * t_scale), "bold"), tags="table_legend")
+
+        hx, hy = tx + w_table, ty + h_table
+        hw = 12 * zoom
+        canvas.create_rectangle(hx - hw, hy - hw, hx, hy, fill="#B07D4C", outline="#F5F2EB", width=1, tags="table_legend")
+        canvas.create_line(hx - hw + 3, hy - 3, hx - 3, hy - hw + 3, fill="#120C08", width=1.5, tags="table_legend")
+
+        canvas.tag_bind("table_legend", "<Enter>", lambda e: canvas.config(cursor="hand2") if not data.get("resizing_table") else None)
+        canvas.tag_bind("table_legend", "<Leave>", lambda e: canvas.config(cursor="") if not (data.get("dragging_table") or data.get("resizing_table")) else None)
+
+        self.enforce_z_order(canvas)
+
+    def enforce_z_order(self, canvas):
+        # 🚀 BÙA KỶ LUẬT THÉP: CHỈ DÌM NHỮNG THẰNG Ở ĐÁY XUỐNG
+        # Đéo xài tag_raise cho Bảng nữa vì thao tác đó làm Tkinter xóc lộn xộn chữ và nền của Bảng.
+        # Chỉ cần dìm Bản vẽ và Lưới xuống đáy cống, cái Bảng nghiễm nhiên bá chủ trên đỉnh!
+        canvas.tag_lower("pdf_background")
+        canvas.tag_lower("grid")
+
+    # ==========================================
+    # KHU VỰC 4: TƯƠNG TÁC CHUỘT (CĂN CHỈNH HITBOX)
     # ==========================================
     def draw_background_grid(self, event, canvas):
         canvas.delete("grid")
@@ -918,20 +941,13 @@ class PromaEnterpriseApp(ctk.CTk):
         trang = data["current_page"]
         
         if getattr(self, "current_action", None) == "ERASE":
-            if "tables" in data and trang in data["tables"]:
-                tb = data["tables"][trang]
-                tx = tb["x"] if isinstance(tb, dict) else tb[0]
-                ty = tb["y"] if isinstance(tb, dict) else tb[1]
-                t_scale = tb.get("scale", 1.0) if isinstance(tb, dict) else 1.0
-                
-                so_hang = len(data["bang_mau_vat_the"])
-                w_tb = 230 * t_scale
-                h_tb = max((so_hang + 1.8) * 24 * t_scale, 60 * t_scale)
-                
+            hitbox = self.get_table_hitbox(data)
+            if hitbox:
+                tx, ty, w_tb, h_tb = hitbox
                 if tx <= px <= tx + w_tb and ty <= py <= ty + h_tb:
                     del data["tables"][trang]
                     self.log_to_terminal("🗑️ Đã dùng Tẩy xóa Bảng chú thích bằng Chuột Trái!", "error")
-                    self.render_page(self.active_tab_name, redraw_pdf=False)
+                    self.draw_table_legend(data) 
                     return 
 
             markers_trang_nay = data.get("markers", {}).get(trang, {})
@@ -950,8 +966,9 @@ class PromaEnterpriseApp(ctk.CTk):
         if getattr(self, "current_action", None) == "TABLE":
             if "tables" not in data: data["tables"] = {}
             data["tables"][trang] = {"x": px, "y": py, "scale": 1.0}
-            self.render_page(self.active_tab_name, redraw_pdf=False)
+            self.draw_table_legend(data)
             self.log_to_terminal("📌 Đã ghim Bảng! Kéo góc dưới-phải để Phóng to/Thu nhỏ.", "success")
+            self.finish_table_mode()
             return
 
         if getattr(self, "current_action", None) == "MARK":
@@ -964,23 +981,17 @@ class PromaEnterpriseApp(ctk.CTk):
             return 
             
         if getattr(self, "current_action", None) is None:
-            if "tables" in data and trang in data["tables"]:
-                tb = data["tables"][trang]
-                tx = tb["x"] if isinstance(tb, dict) else tb[0]
-                ty = tb["y"] if isinstance(tb, dict) else tb[1]
-                t_scale = tb.get("scale", 1.0) if isinstance(tb, dict) else 1.0
-                
-                so_hang = len(data["bang_mau_vat_the"])
-                w_tb = 230 * t_scale
-                h_tb = max((so_hang + 1.8) * 24 * t_scale, 60 * t_scale)
-                
-                if (tx + w_tb - 25) <= px <= (tx + w_tb + 15) and (ty + h_tb - 25) <= py <= (ty + h_tb + 15):
+            hitbox = self.get_table_hitbox(data)
+            if hitbox:
+                tx, ty, w_tb, h_tb = hitbox
+                # 🚀 FIX HITBOX: Nới rộng 25 pixel bắt góc, chống tuột tay
+                if (tx + w_tb - 25) <= px <= (tx + w_tb + 10) and (ty + h_tb - 25) <= py <= (ty + h_tb + 10):
                     data["resizing_table"] = True
                     data["resize_start_tx"] = tx
                     self.log_to_terminal("🔍 Đang kéo đổi kích thước Bảng...", "sys")
                     return
-                    
-                if tx <= px <= tx + w_tb and ty <= py <= ty + h_tb:
+                # Bắt thân bảng để Drag
+                if tx - 5 <= px <= tx + w_tb + 5 and ty - 5 <= py <= ty + h_tb + 5:
                     data["dragging_table"] = True
                     data["drag_table_offset"] = [px - tx, py - ty]
                     return
@@ -990,10 +1001,7 @@ class PromaEnterpriseApp(ctk.CTk):
             data["drag_data"]["start_x"] = event.x
             data["drag_data"]["start_y"] = event.y
             if data.get("rect_id"): data["canvas"].delete(data["rect_id"])
-            data["rect_id"] = data["canvas"].create_rectangle(
-                event.x, event.y, event.x, event.y, 
-                outline=ACCENT_MAIN, width=2, dash=(4, 4), tags="selection_rect"
-            )
+            data["rect_id"] = data["canvas"].create_rectangle(event.x, event.y, event.x, event.y, outline=ACCENT_MAIN, width=2, dash=(4, 4), tags="selection_rect")
         else: 
             data["canvas"].config(cursor="fleur")
             data["drag_data"]["x"] = event.x
@@ -1010,10 +1018,9 @@ class PromaEnterpriseApp(ctk.CTk):
             zoom = data["zoom_level"]
             px = (event.x - pos_x) / zoom
             tx = data["resize_start_tx"]
-            
             new_scale = max(0.4, min(4.0, (px - tx) / 230.0))
             data["tables"][data["current_page"]]["scale"] = new_scale
-            self.render_page(self.active_tab_name, redraw_pdf=False)
+            self.draw_table_legend(data) 
             return
 
         if data.get("dragging_table", False):
@@ -1022,10 +1029,9 @@ class PromaEnterpriseApp(ctk.CTk):
             px = (event.x - pos_x) / zoom
             py = (event.y - pos_y) / zoom
             ox, oy = data["drag_table_offset"]
-            
             data["tables"][data["current_page"]]["x"] = px - ox
             data["tables"][data["current_page"]]["y"] = py - oy
-            self.render_page(self.active_tab_name, redraw_pdf=False)
+            self.draw_table_legend(data) 
             return
         
         if hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng":
@@ -1034,7 +1040,8 @@ class PromaEnterpriseApp(ctk.CTk):
             data["canvas"].coords(data.get("rect_id"), start_x, start_y, event.x, event.y)
         else:
             dx, dy = event.x - data["drag_data"]["x"], event.y - data["drag_data"]["y"]
-            data["canvas"].move("pdf_img", dx, dy)
+            data["canvas"].move("pdf_background", dx, dy)
+            data["canvas"].move("table_legend", dx, dy)
             data["img_pos"][0] += dx
             data["img_pos"][1] += dy
             data["drag_data"]["x"], data["drag_data"]["y"] = event.x, event.y
@@ -1043,12 +1050,15 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         
+        was_interacting = data.get("dragging_table") or data.get("resizing_table")
         data["dragging_table"] = False
         data["resizing_table"] = False
         
         if getattr(self, "current_action", None) in ["MARK", "ERASE"]: return
 
-        if not hasattr(self, 'area_mode_var') or self.area_mode_var.get() == "Toàn bản vẽ": return
+        if not hasattr(self, 'area_mode_var') or self.area_mode_var.get() == "Toàn bản vẽ": 
+            data["canvas"].config(cursor="")
+            return
         
         data["canvas"].config(cursor="")
         
@@ -1089,7 +1099,8 @@ class PromaEnterpriseApp(ctk.CTk):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
         dx, dy = event.x - data["drag_data"]["mid_x"], event.y - data["drag_data"]["mid_y"]
-        data["canvas"].move("pdf_img", dx, dy)
+        data["canvas"].move("pdf_background", dx, dy)
+        data["canvas"].move("table_legend", dx, dy)
         data["img_pos"][0] += dx
         data["img_pos"][1] += dy
         data["drag_data"]["mid_x"], data["drag_data"]["mid_y"] = event.x, event.y
@@ -1097,7 +1108,6 @@ class PromaEnterpriseApp(ctk.CTk):
     def on_middle_drag_release(self, event):
         if not self.active_tab_name: return
         data = self.tabs[self.active_tab_name]
-        
         if getattr(self, "current_action", None) == "MARK" or (hasattr(self, 'area_mode_var') and self.area_mode_var.get() == "Kéo chọn vùng"):
             data["canvas"].config(cursor="crosshair")
         else:
@@ -1105,7 +1115,6 @@ class PromaEnterpriseApp(ctk.CTk):
 
     def on_right_click(self, event):
         if not self.active_tab_name: return
-        
         if getattr(self, "current_action", None) == "MARK":
             self.undo_manual_mark()
             return
@@ -1117,7 +1126,7 @@ class PromaEnterpriseApp(ctk.CTk):
             if "tables" in data and trang in data["tables"]:
                 del data["tables"][trang]
                 self.log_to_terminal("🗑️ Đã dùng Chuột phải xóa Bảng chú thích!", "error")
-                self.render_page(self.active_tab_name, redraw_pdf=False)
+                self.draw_table_legend(data)
             return
 
         if getattr(self, "current_action", None) == "ERASE":
@@ -1155,9 +1164,17 @@ class PromaEnterpriseApp(ctk.CTk):
         img_x, img_y = data["img_pos"]
         mx, my = event.x, event.y
         
+        # Cập nhật pos mới
         data["img_pos"] = [mx - (mx - img_x) * zoom_factor, my - (my - img_y) * zoom_factor]
         self.lbl_zoom.configure(text=f"Zoom: {int(data['zoom_level'] * 100)}%")
 
+        # 🚀 FIX CHÍ MẠNG: Dịch chuyển tạm thời Bảng và Bản vẽ CÙNG LÚC để nhìn cho mượt
+        dx = data["img_pos"][0] - img_x
+        dy = data["img_pos"][1] - img_y
+        data["canvas"].move("pdf_background", dx, dy)
+        data["canvas"].move("table_legend", dx, dy)
+
+        # 🚀 ĐỢI 150ms THÌ RE-RENDER ĐỒNG LỌAT CẢ BẢN VẼ LẪN BẢNG CÙNG 1 SIZE MỚI!
         if self.zoom_timer: self.after_cancel(self.zoom_timer)
         self.zoom_timer = self.after(150, lambda n=self.active_tab_name: self.render_page(n, redraw_pdf=True))
 
