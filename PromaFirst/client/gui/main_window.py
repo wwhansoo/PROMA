@@ -445,7 +445,7 @@ class PromaEnterpriseApp(ctk.CTk):
         switch.pack(side="left", padx=(0, 6))
         data["layer_switches"][ma_den] = switch
 
-        # 2. BÊN PHẢI
+        # 2. BÊN PHẢI (Các nút chức năng cơ bản)
         btn_delete = ctk.CTkButton(
             row, text="×", width=22, height=22, corner_radius=6, 
             fg_color="transparent", text_color=TEXT_MUTED, hover_color=CLOSE_BTN_HOVER, font=("Consolas", 16, "bold"),
@@ -453,13 +453,42 @@ class PromaEnterpriseApp(ctk.CTk):
         )
         btn_delete.pack(side="right", padx=(2, 4))
 
+        # Nút bật Popup Kích thước
+        btn_size = ctk.CTkButton(
+            row, text="⤢", width=22, height=22, corner_radius=6,
+            fg_color="transparent", text_color=TEXT_MUTED, hover_color="#2A1E14", font=("Consolas", 15)
+            # Lệnh command sẽ gán ở dưới
+        )
+        btn_size.pack(side="right", padx=(2, 4))
+
+        # ==========================================
+        # 🚀 HỆ THỐNG POPUP NỔI LỀNH BỀNH
+        # ==========================================
+        # Tạo một cái panel nhỏ màu hơi sáng hơn xíu để làm nền nổi
+        popup_panel = ctk.CTkFrame(row, fg_color="#2A1E14", corner_radius=6, height=28)
+        
+        def hien_popup():
+            # Nổi lên góc phải, nằm đè lên vị trí của 2 nút kia cho siêu gọn
+            popup_panel.place(relx=1.0, rely=0.5, anchor="e", x=-2)
+            popup_panel.tkraise() # Bùa ép nó phải nổi lên trên cùng!
+
+        def an_popup(event=None):
+            popup_panel.place_forget()
+
+        btn_size.configure(command=hien_popup)
+
+        # Thanh kéo kích thước
         scale_val = data.setdefault("layer_scale", {}).setdefault(ma_den, 1.0)
         slider = ctk.CTkSlider(
-            row, width=45, height=12, from_=1.0, to=5.0, 
-            button_color=mau_sac, progress_color=mau_sac, command=lambda v, m=ma_den: self.change_layer_scale(m, v)
+            popup_panel, width=70, height=12, from_=1.0, to=5.0, 
+            button_color=mau_sac, progress_color=mau_sac, 
+            command=lambda v, m=ma_den: self.change_layer_scale(m, v)
         )
         slider.set(scale_val)
-        slider.pack(side="right", padx=(2, 4))
+        slider.pack(side="right", padx=(6, 2), pady=4)
+
+        # 🚀 TÍNH NĂNG TỰ ĐỘNG HỦY DIỆT: Kéo buông chuột ra -> Tự tắt Popup!
+        slider.bind("<ButtonRelease-1>", an_popup)
 
         # 3. Ở GIỮA
         text_hien_thi = f"{ma_den} [{so_luong:02d}]"
@@ -538,6 +567,28 @@ class PromaEnterpriseApp(ctk.CTk):
         if hasattr(self, 'scale_timer') and self.scale_timer:
             self.after_cancel(self.scale_timer)
         self.scale_timer = self.after(50, lambda: self.render_page(self.active_tab_name, redraw_pdf=False))
+
+    def change_layer_scale(self, ma_den, value):
+        if not self.active_tab_name: return
+        self.tabs[self.active_tab_name]["layer_scale"][ma_den] = value
+        
+        if hasattr(self, 'scale_timer') and self.scale_timer:
+            self.after_cancel(self.scale_timer)
+        self.scale_timer = self.after(50, lambda: self.render_page(self.active_tab_name, redraw_pdf=False))
+
+    # 🚀 BÙA THÒ RA THỤT VÀO CHO SLIDER KÍCH THƯỚC
+    # 🚀 BÙA NỔI LỀNH BỀNH (KHÔNG ÉP LAYOUT CHỮ)
+    def toggle_slider_visibility(self, slider_widget):
+        # Dùng place_info() để kiểm tra xem nó đang nổi hay đang lặn
+        if len(slider_widget.place_info()) > 0:
+            # Nếu đang nổi -> Rút lại cho chìm xuống
+            slider_widget.place_forget()
+        else:
+            # Nếu đang chìm -> Bơm lên cho nổi lềnh bềnh!
+            # relx=1.0: Căn từ mép phải của thanh layer.
+            # x=-70: Đẩy lùi sang trái 70 pixel (Vừa đủ né 2 cái nút Icon và Xóa).
+            # rely=0.5, anchor="e": Căn giữa chiều dọc, neo ở bên phải.
+            slider_widget.place(relx=1.0, x=-70, rely=0.5, anchor="e")
 
     def toggle_layer(self, ma_den, is_visible):
         if not self.active_tab_name: return
@@ -1245,7 +1296,7 @@ class PromaEnterpriseApp(ctk.CTk):
 
     def _thread_run_engine(self, temp_path, tong_so_trang, trang_hien_tai, mode, chu_ky, vung_chon):
         try:
-            from logic.api_handler import goi_backend_boc_tach
+            from client.logic.api_handler import goi_backend_boc_tach
             all_results = {}
             co_loi = False
             loi_msg = ""
@@ -1862,7 +1913,7 @@ class PromaEnterpriseApp(ctk.CTk):
         threading.Thread(target=self._thread_train_legend, args=(file_bang, trang_so), daemon=True).start()
 
     def _thread_train_legend(self, filepath, page_idx):
-        from logic.api_handler import goi_backend_hoc_ky_hieu
+        from client.logic.api_handler import goi_backend_hoc_ky_hieu
         thanh_cong, ket_qua = goi_backend_hoc_ky_hieu(filepath, page_idx)
         self.after(0, self._hoan_thanh_train, thanh_cong, ket_qua)
         
